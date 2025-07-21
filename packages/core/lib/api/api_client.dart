@@ -253,13 +253,22 @@ class ApiClient {
     print('DEBUG: Full buildings response: $responseData');
     print('DEBUG: Response keys: ${responseData.keys.toList()}');
     
-    // The API returns buildings in 'data' field
-    final buildingsData = responseData['data'] as List?;
+    // The API returns buildings in 'payload' field
+    final payloadData = responseData['payload'];
+    print('DEBUG: Raw payload data: $payloadData');
+    print('DEBUG: Payload type: ${payloadData.runtimeType}');
+    
+    List<dynamic>? buildingsData;
+    if (payloadData is List) {
+      buildingsData = payloadData;
+    } else {
+      print('DEBUG: Payload is not a List, it is: ${payloadData.runtimeType}');
+    }
     
     print('DEBUG: Buildings data type: ${buildingsData.runtimeType}');
     print('DEBUG: Buildings data length: ${buildingsData?.length}');
     
-    if (buildingsData == null) {
+    if (buildingsData == null || buildingsData.isEmpty) {
       throw ApiException('No buildings data in response');
     }
     

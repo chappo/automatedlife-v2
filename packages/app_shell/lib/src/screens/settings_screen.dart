@@ -3,6 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:design_system/design_system.dart';
 import 'package:core/core.dart';
 import '../navigation/navigation_provider.dart';
+import 'alias_management_screen.dart';
+import 'change_password_screen.dart';
+import 'help_support_screen.dart';
+import 'privacy_policy_screen.dart';
+import 'terms_of_service_screen.dart';
 
 /// Comprehensive settings screen with user preferences, account management, and app settings
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -26,14 +31,28 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   Future<void> _loadSettings() async {
     // Load user preferences from storage
-    // This would typically come from SharedPreferences or user account
-    setState(() {
-      // Default values for now
-      _notificationsEnabled = true;
-      _darkModeEnabled = false;
-      _biometricsEnabled = false;
-      _textSize = 1.0;
-    });
+    try {
+      final biometricService = BiometricAuthService.instance;
+      final preferencesService = PreferencesService.instance;
+      
+      final biometricEnabled = await biometricService.isBiometricEnabled();
+      final preferences = await preferencesService.getAllPreferences();
+      
+      setState(() {
+        _notificationsEnabled = preferences['notifications_enabled'] ?? true;
+        _darkModeEnabled = preferences['dark_mode_enabled'] ?? false;
+        _biometricsEnabled = biometricEnabled;
+        _textSize = preferences['text_size'] ?? 1.0;
+      });
+    } catch (e) {
+      setState(() {
+        // Default values on error
+        _notificationsEnabled = true;
+        _darkModeEnabled = false;
+        _biometricsEnabled = false;
+        _textSize = 1.0;
+      });
+    }
   }
 
   Future<void> _handleLogout() async {
@@ -51,6 +70,205 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
             ),
           );
         }
+      }
+    }
+  }
+
+  Future<void> _handleBiometricToggle(bool value) async {
+    final biometricService = BiometricAuthService.instance;
+    
+    if (value) {
+      // Enabling biometric authentication
+      final isAvailable = await biometricService.isAvailable();
+      if (!isAvailable) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Biometric authentication is not available on this device'),
+            ),
+          );
+        }
+        return;
+      }
+
+      final success = await biometricService.setBiometricEnabled(true);
+      if (success) {
+        setState(() {
+          _biometricsEnabled = true;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Biometric login enabled'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Failed to enable biometric login'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    } else {
+      // Disabling biometric authentication
+      final success = await biometricService.setBiometricEnabled(false);
+      if (success) {
+        setState(() {
+          _biometricsEnabled = false;
+        });
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Biometric login disabled'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<void> _handleNotificationsToggle(bool value) async {
+    // Always update UI immediately for better user experience
+    setState(() {
+      _notificationsEnabled = value;
+    });
+    
+    try {
+      final preferencesService = PreferencesService.instance;
+      final success = await preferencesService.setNotificationsEnabled(value);
+      
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(value ? 'Notifications enabled' : 'Notifications disabled'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // Keep UI updated but show warning
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Notifications updated locally but failed to save permanently'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Keep UI updated but show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Notifications updated locally but encountered error: ${e.toString().length > 50 ? 'storage issue' : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleDarkModeToggle(bool value) async {
+    // Always update UI immediately for better user experience
+    setState(() {
+      _darkModeEnabled = value;
+    });
+    
+    try {
+      final preferencesService = PreferencesService.instance;
+      final success = await preferencesService.setDarkModeEnabled(value);
+      
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(value ? 'Dark mode enabled' : 'Dark mode disabled'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // Keep UI updated but show warning
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Dark mode updated locally but failed to save permanently'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Keep UI updated but show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Dark mode updated locally but encountered error: ${e.toString().length > 50 ? 'storage issue' : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _handleTextSizeChange(double? value) async {
+    if (value == null) return;
+    
+    // Always update UI immediately for better user experience
+    setState(() {
+      _textSize = value;
+    });
+    
+    try {
+      final preferencesService = PreferencesService.instance;
+      final success = await preferencesService.setTextSize(value);
+      
+      if (success) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Text size changed to ${PreferencesService.getTextSizeLabel(value)}'),
+              backgroundColor: Theme.of(context).colorScheme.primary,
+              duration: const Duration(seconds: 2),
+            ),
+          );
+        }
+      } else {
+        // Keep UI updated but show warning
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Text size updated locally but failed to save permanently'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+              duration: const Duration(seconds: 3),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      // Keep UI updated but show error
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Text size updated locally but encountered error: ${e.toString().length > 50 ? 'storage issue' : e.toString()}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+            duration: const Duration(seconds: 3),
+          ),
+        );
       }
     }
   }
@@ -83,10 +301,16 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
     final theme = Theme.of(context);
     final colorScheme = theme.colorScheme;
     final navigationState = ref.watch(navigationProvider);
-    final user = navigationState.currentUser;
     final building = navigationState.currentBuilding;
+    
+    debugPrint('Settings Screen: Building with brightness: ${colorScheme.brightness}, surface: ${colorScheme.surface}, onSurface: ${colorScheme.onSurface}');
 
-    return Scaffold(
+    return FutureBuilder<User?>(
+      future: AuthService.instance.getCurrentUser(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+
+        return Scaffold(
       backgroundColor: colorScheme.surface,
       appBar: AppBar(
         title: const Text('Settings'),
@@ -126,6 +350,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           ],
         ),
       ),
+        );
+      },
     );
   }
 
@@ -153,12 +379,12 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                 width: 60,
                 height: 60,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(
+                  gradient: LinearGradient(
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      Color(0xFF77B42D), // AL brand green
-                      Color(0xFF558B2F), // Darker AL green
+                      theme.colorScheme.primary,
+                      theme.colorScheme.primary.withValues(alpha: 0.8),
                     ],
                   ),
                   borderRadius: BorderRadius.circular(NWDimensions.radiusLarge),
@@ -239,11 +465,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Receive notifications for messages and updates',
           icon: Icons.notifications_outlined,
           value: _notificationsEnabled,
-          onChanged: (value) {
-            setState(() {
-              _notificationsEnabled = value;
-            });
-          },
+          onChanged: _handleNotificationsToggle,
         ),
         _buildSwitchListTile(
           theme: theme,
@@ -251,11 +473,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Use dark theme throughout the app',
           icon: Icons.dark_mode_outlined,
           value: _darkModeEnabled,
-          onChanged: (value) {
-            setState(() {
-              _darkModeEnabled = value;
-            });
-          },
+          onChanged: _handleDarkModeToggle,
         ),
         _buildListTile(
           theme: theme,
@@ -265,18 +483,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           trailing: DropdownButton<double>(
             value: _textSize,
             underline: Container(),
-            items: [
-              DropdownMenuItem(value: 0.8, child: Text('Small')),
-              DropdownMenuItem(value: 1.0, child: Text('Medium')),
-              DropdownMenuItem(value: 1.2, child: Text('Large')),
-            ],
-            onChanged: (value) {
-              if (value != null) {
-                setState(() {
-                  _textSize = value;
-                });
-              }
-            },
+            items: PreferencesService.getAvailableTextSizes()
+                .map((size) => DropdownMenuItem(
+                      value: size,
+                      child: Text(PreferencesService.getTextSizeLabel(size)),
+                    ))
+                .toList(),
+            onChanged: _handleTextSizeChange,
           ),
         ),
       ],
@@ -294,9 +507,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Manage your display name and aliases',
           icon: Icons.badge_outlined,
           onTap: () {
-            // TODO: Navigate to alias management
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Alias management coming soon')),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const AliasManagementScreen(),
+              ),
             );
           },
         ),
@@ -306,11 +520,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Use fingerprint or face recognition to sign in',
           icon: Icons.fingerprint_outlined,
           value: _biometricsEnabled,
-          onChanged: (value) {
-            setState(() {
-              _biometricsEnabled = value;
-            });
-          },
+          onChanged: _handleBiometricToggle,
         ),
         _buildListTile(
           theme: theme,
@@ -318,9 +528,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Update your account password',
           icon: Icons.lock_outline,
           onTap: () {
-            // TODO: Navigate to change password screen
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Change password coming soon')),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const ChangePasswordScreen(),
+              ),
             );
           },
         ),
@@ -339,8 +550,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Get help and contact support',
           icon: Icons.help_outline,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Help & support coming soon')),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const HelpSupportScreen(),
+              ),
             );
           },
         ),
@@ -350,8 +563,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Review our privacy practices',
           icon: Icons.privacy_tip_outlined,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Privacy policy coming soon')),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const PrivacyPolicyScreen(),
+              ),
             );
           },
         ),
@@ -361,8 +576,10 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
           subtitle: 'Review terms and conditions',
           icon: Icons.description_outlined,
           onTap: () {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Terms of service coming soon')),
+            Navigator.of(context).push(
+              MaterialPageRoute(
+                builder: (context) => const TermsOfServiceScreen(),
+              ),
             );
           },
         ),

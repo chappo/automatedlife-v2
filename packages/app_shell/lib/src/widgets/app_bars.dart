@@ -254,104 +254,110 @@ class _ProfileBottomSheetState extends ConsumerState<ProfileBottomSheet> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final navigationState = ref.watch(navigationProvider);
-    final user = navigationState.currentUser;
     
-    return Container(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return FutureBuilder<User?>(
+      future: AuthService.instance.getCurrentUser(),
+      builder: (context, snapshot) {
+        final user = snapshot.data;
+        
+        return Container(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 50,
-                height: 50,
-                decoration: BoxDecoration(
-                  gradient: const LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [
-                      Color(0xFF77B42D), // AL brand green
-                      Color(0xFF558B2F), // Darker AL green
-                    ],
-                  ),
-                  borderRadius: BorderRadius.circular(25),
-                ),
-                child: Center(
-                  child: Text(
-                    user?.displayName?.isNotEmpty == true 
-                        ? user!.displayName.split(' ').map((e) => e[0]).take(2).join().toUpperCase()
-                        : widget.userRole.displayName[0].toUpperCase(),
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      user?.displayName ?? 'User Profile',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
+              Row(
+                children: [
+                  Container(
+                    width: 50,
+                    height: 50,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF77B42D), // AL brand green
+                          Color(0xFF558B2F), // Darker AL green
+                        ],
                       ),
+                      borderRadius: BorderRadius.circular(25),
                     ),
-                    Text(
-                      widget.userRole.displayName,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: theme.colorScheme.onSurfaceVariant,
-                      ),
-                    ),
-                    if (widget.currentBuilding?.name != null)
-                      Text(
-                        widget.currentBuilding!.name!,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w500,
+                    child: Center(
+                      child: Text(
+                        user?.displayName?.isNotEmpty == true 
+                            ? user!.displayName.split(' ').map((e) => e[0]).take(2).join().toUpperCase()
+                            : widget.userRole.displayName[0].toUpperCase(),
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
                         ),
                       ),
-                  ],
-                ),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          user?.displayName ?? 'User Profile',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                        Text(
+                          widget.userRole.displayName,
+                          style: theme.textTheme.bodyMedium?.copyWith(
+                            color: theme.colorScheme.onSurfaceVariant,
+                          ),
+                        ),
+                        if (widget.currentBuilding?.name != null)
+                          Text(
+                            widget.currentBuilding!.name!,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.colorScheme.primary,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                      ],
+                    ),
+                  ),
+                ],
               ),
+              const SizedBox(height: 24),
+              const Divider(),
+              ListTile(
+                leading: Icon(Icons.settings_outlined, color: theme.colorScheme.primary),
+                title: const Text('Settings'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _navigateToSettings,
+              ),
+              ListTile(
+                leading: Icon(Icons.help_outline, color: theme.colorScheme.primary),
+                title: const Text('Help & Support'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: _navigateToHelp,
+              ),
+              const Divider(),
+              ListTile(
+                leading: Icon(
+                  _isLoggingOut ? Icons.hourglass_empty : Icons.logout,
+                  color: theme.colorScheme.error,
+                ),
+                title: Text(
+                  _isLoggingOut ? 'Signing Out...' : 'Sign Out',
+                  style: TextStyle(
+                    color: theme.colorScheme.error,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+                onTap: _isLoggingOut ? null : _handleSignOut,
+              ),
+              const SizedBox(height: 16),
             ],
           ),
-          const SizedBox(height: 24),
-          const Divider(),
-          ListTile(
-            leading: Icon(Icons.settings_outlined, color: theme.colorScheme.primary),
-            title: const Text('Settings'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _navigateToSettings,
-          ),
-          ListTile(
-            leading: Icon(Icons.help_outline, color: theme.colorScheme.primary),
-            title: const Text('Help & Support'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: _navigateToHelp,
-          ),
-          const Divider(),
-          ListTile(
-            leading: Icon(
-              _isLoggingOut ? Icons.hourglass_empty : Icons.logout,
-              color: theme.colorScheme.error,
-            ),
-            title: Text(
-              _isLoggingOut ? 'Signing Out...' : 'Sign Out',
-              style: TextStyle(
-                color: theme.colorScheme.error,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            onTap: _isLoggingOut ? null : _handleSignOut,
-          ),
-          const SizedBox(height: 16),
-        ],
-      ),
+        );
+      },
     );
   }
 }

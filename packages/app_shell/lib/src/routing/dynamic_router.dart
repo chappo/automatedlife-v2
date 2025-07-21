@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../navigation/navigation_provider.dart';
 import '../widgets/building_switcher.dart';
 import '../screens/settings_screen.dart';
+import '../screens/dashboard_screen.dart';
 import '../utils/icon_mapper.dart';
 
 /// Provider for dynamic router that adapts to building capabilities
@@ -52,7 +53,7 @@ List<RouteBase> _buildDynamicRoutes(ProviderRef ref) {
         GoRoute(
           path: '/dashboard',
           name: 'dashboard',
-          builder: (context, state) => const DashboardPage(),
+          builder: (context, state) => const DashboardScreen(),
         ),
         
         // Dynamically add capability routes
@@ -412,12 +413,15 @@ class DynamicCapabilityPage extends ConsumerWidget {
     }
     
     String? urlToLaunch;
+    String? storeUrl;
     
-    // Determine which URL to use based on platform
+    // Determine which URLs to use based on platform
     if (Theme.of(context).platform == TargetPlatform.iOS) {
       urlToLaunch = apps['ios'] as String?;
+      storeUrl = apps['ios_store'] as String? ?? apps['app_store'] as String?;
     } else if (Theme.of(context).platform == TargetPlatform.android) {
       urlToLaunch = apps['android'] as String?;
+      storeUrl = apps['android_store'] as String? ?? apps['play_store'] as String?;
     }
     
     // Fallback to web URL if platform-specific URL not available
@@ -441,14 +445,78 @@ class DynamicCapabilityPage extends ConsumerWidget {
         );
         
         // Navigate back after launching external app
-        if (context.mounted) {
-          context.go('/dashboard');
-        }
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            context.go('/dashboard');
+          }
+        });
       } else {
-        _showError(context, 'Cannot launch: $urlToLaunch');
+        // App not installed, try to launch store URL
+        if (storeUrl != null && storeUrl.isNotEmpty) {
+          await _launchStoreUrl(context, storeUrl, capability.name);
+        } else {
+          if (context.mounted) {
+            _showError(context, '${capability.name} is not installed and no store URL provided');
+          }
+        }
       }
     } catch (e) {
-      _showError(context, 'Failed to launch: $e');
+      // If launching the app fails, try store URL as fallback
+      if (storeUrl != null && storeUrl.isNotEmpty) {
+        await _launchStoreUrl(context, storeUrl, capability.name);
+      } else {
+        if (context.mounted) {
+          _showError(context, 'Failed to launch ${capability.name}: $e');
+        }
+      }
+    }
+  }
+  
+  Future<void> _launchStoreUrl(BuildContext context, String storeUrl, String appName) async {
+    try {
+      final storeUri = Uri.parse(storeUrl);
+      final canLaunchStore = await canLaunchUrl(storeUri);
+      
+      if (canLaunchStore) {
+        await launchUrl(
+          storeUri,
+          mode: LaunchMode.externalApplication,
+        );
+        
+        // Show informative message
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('$appName is not installed. Redirecting to store...'),
+              backgroundColor: Colors.orange,
+              action: SnackBarAction(
+                label: 'Back',
+                textColor: Colors.white,
+                onPressed: () => context.go('/dashboard'),
+              ),
+            ),
+          );
+        }
+        
+        // Navigate back after short delay
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (context.mounted) {
+            Future.delayed(const Duration(seconds: 2), () {
+              if (context.mounted) {
+                context.go('/dashboard');
+              }
+            });
+          }
+        });
+      } else {
+        if (context.mounted) {
+          _showError(context, '$appName is not installed and cannot open store');
+        }
+      }
+    } catch (e) {
+      if (context.mounted) {
+        _showError(context, '$appName is not installed. Store launch failed: $e');
+      }
     }
   }
   
@@ -703,30 +771,5 @@ class DynamicCapabilityPage extends ConsumerWidget {
   }
 }
 
-/// Simple dashboard page
-class DashboardPage extends StatelessWidget {
-  const DashboardPage({super.key});
-  
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.dashboard, size: 64),
-            SizedBox(height: 16),
-            Text(
-              'Dashboard',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('Welcome to Building Manager'),
-          ],
-        ),
-      ),
-    );
-  }
-}
 
 // Settings page now imported from main app

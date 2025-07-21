@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../models/models.dart';
 import '../navigation/navigation_provider.dart';
 import '../shells/shells.dart';
+import '../screens/settings_screen.dart';
 
 /// Provider for the app router
 final appRouterProvider = Provider<GoRouter>((ref) {
@@ -115,7 +116,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/settings',
             name: 'settings',
-            builder: (context, state) => const SettingsPage(),
+            builder: (context, state) => const SettingsScreen(),
           ),
           
           // Contact/Support routes
@@ -363,11 +364,6 @@ class BookAmenityPage extends StatelessWidget {
 }
 
 
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-  @override
-  Widget build(BuildContext context) => const Center(child: Text('Settings'));
-}
 
 class ContactPage extends StatelessWidget {
   const ContactPage({super.key});

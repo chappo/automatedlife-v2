@@ -26,32 +26,29 @@ class AppShell extends ConsumerStatefulWidget {
 }
 
 class _AppShellState extends ConsumerState<AppShell> {
-  bool _hasInitialized = false;
+  Building? _lastInitializedBuilding;
+  bool _hasSetupStreams = false;
 
   @override
   Widget build(BuildContext context) {
     final router = ref.watch(dynamicRouterProvider);
 
-    return MaterialApp.router(
-      title: 'Building Manager',
-      theme: NWAppTheme.light(),
-      darkTheme: NWAppTheme.dark(),
-      routerConfig: router,
-      builder: (context, child) {
-        // Initialize navigation state once only
-        if (!_hasInitialized) {
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!_hasInitialized) {
-              _initializeNavigationState();
-              _hasInitialized = true;
-            }
-          });
-        }
+    // Initialize/reinitialize navigation state when building changes
+    if (_lastInitializedBuilding?.id != widget.currentBuilding?.id) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        _initializeNavigationState();
+        _lastInitializedBuilding = widget.currentBuilding;
         
-        return AccessibilityWrapper(
-          child: child ?? const SizedBox.shrink(),
-        );
-      },
+        // Set up streams only once
+        if (!_hasSetupStreams) {
+          _setupCapabilityStreams();
+          _hasSetupStreams = true;
+        }
+      });
+    }
+
+    return Router.withConfig(
+      config: router,
     );
   }
 
@@ -85,41 +82,60 @@ class _AppShellState extends ConsumerState<AppShell> {
       print('DEBUG: Set ${widget.availableBuildings.length} buildings in navigation provider');
     }
 
-    // Listen to building capabilities from AuthService (only once)
+    // Load capabilities for the current building
+    _loadBuildingCapabilities();
+  }
+
+  void _setupCapabilityStreams() {
+    final navigationNotifier = ref.read(navigationProvider.notifier);
     final authService = AuthService.instance;
+
+    // Listen to building capabilities changes
     authService.buildingCapabilitiesStream.listen((buildingCapabilities) {
       if (!mounted) return;
       
       if (buildingCapabilities != null) {
         print('DEBUG: Received building capabilities with ${buildingCapabilities.enabled.length} enabled');
-        // Use the new method that sets both capability keys and full capability data
         navigationNotifier.setBuildingCapabilities(buildingCapabilities);
       } else {
         // Fallback to default capabilities if API fails
+        final userRole = navigationNotifier.state.userRole;
         print('DEBUG: No building capabilities, using default for role: $userRole');
         navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
       }
     });
+  }
+
+  void _loadBuildingCapabilities() {
+    final navigationNotifier = ref.read(navigationProvider.notifier);
     
-    // Try to load capabilities immediately if we have a building (only once)
-    if (widget.currentBuilding != null) {
-      authService.getBuildingCapabilities().then((buildingCapabilities) {
-        if (!mounted) return;
-        
-        if (buildingCapabilities != null) {
-          print('DEBUG: Immediately loaded ${buildingCapabilities.enabled.length} enabled capabilities');
-          navigationNotifier.setBuildingCapabilities(buildingCapabilities);
-        }
-      }).catchError((e) {
-        if (!mounted) return;
-        
-        print('DEBUG: Failed to immediately load capabilities: $e');
-        navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
-      });
-    } else {
+    if (widget.currentBuilding == null) {
       // No building selected, use default capabilities
+      final userRole = navigationNotifier.state.userRole;
       navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
+      return;
     }
+
+    final authService = AuthService.instance;
+    authService.getBuildingCapabilities().then((buildingCapabilities) {
+      if (!mounted) return;
+        
+      if (buildingCapabilities != null) {
+        print('DEBUG: Immediately loaded ${buildingCapabilities.enabled.length} enabled capabilities');
+        navigationNotifier.setBuildingCapabilities(buildingCapabilities);
+      } else {
+        // Fallback to default capabilities if API fails
+        final userRole = navigationNotifier.state.userRole;
+        print('DEBUG: No building capabilities from API, using default for role: $userRole');
+        navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
+      }
+    }).catchError((e) {
+      if (!mounted) return;
+      
+      print('DEBUG: Failed to load capabilities: $e');
+      final userRole = navigationNotifier.state.userRole;
+      navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
+    });
   }
 }
 
