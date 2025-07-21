@@ -141,8 +141,8 @@ class CoreService {
     return await _apiClient.getBuildingDetails(buildingId);
   }
 
-  /// Get building capabilities
-  Future<List<Capability>> getBuildingCapabilities(int buildingId) async {
+  /// Get building capabilities (enabled and available)
+  Future<BuildingCapabilitiesResponse> getBuildingCapabilities(int buildingId) async {
     return await _apiClient.getBuildingCapabilities(buildingId);
   }
 

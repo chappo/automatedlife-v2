@@ -86,7 +86,7 @@ class NWAppTheme {
       ),
       
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: NWElevation.card,
         margin: EdgeInsets.zero,
         shape: RoundedRectangleBorder(
@@ -102,7 +102,7 @@ class NWAppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(NWDimensions.radiusMedium),
           ),
-          textStyle: NWTypography.Semantic.buttonText(colorScheme),
+          textStyle: NWTypographySemantic.buttonText(colorScheme),
         ),
       ),
       
@@ -112,7 +112,7 @@ class NWAppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(NWDimensions.radiusMedium),
           ),
-          textStyle: NWTypography.Semantic.buttonText(colorScheme),
+          textStyle: NWTypographySemantic.buttonText(colorScheme),
         ),
       ),
       
@@ -122,14 +122,14 @@ class NWAppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(NWDimensions.radiusMedium),
           ),
-          textStyle: NWTypography.Semantic.buttonText(colorScheme),
+          textStyle: NWTypographySemantic.buttonText(colorScheme),
         ),
       ),
       
       // Input field theme
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+        fillColor: colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(NWDimensions.radiusMedium),
           borderSide: BorderSide.none,
@@ -162,7 +162,7 @@ class NWAppTheme {
       ),
       
       // Dialog theme
-      dialogTheme: DialogTheme(
+      dialogTheme: DialogThemeData(
         elevation: NWElevation.dialog,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(NWDimensions.radiusLarge),
@@ -191,7 +191,7 @@ class NWAppTheme {
       
       // Chip theme
       chipTheme: ChipThemeData(
-        backgroundColor: colorScheme.surfaceVariant,
+        backgroundColor: colorScheme.surfaceContainerHighest,
         labelStyle: textTheme.labelMedium,
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         shape: RoundedRectangleBorder(
@@ -201,23 +201,23 @@ class NWAppTheme {
       
       // Switch theme
       switchTheme: SwitchThemeData(
-        thumbColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
+        thumbColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
             return colorScheme.primary;
           }
           return colorScheme.outline;
         }),
-        trackColor: MaterialStateProperty.resolveWith((states) {
-          if (states.contains(MaterialState.selected)) {
-            return colorScheme.primary.withOpacity(0.5);
+        trackColor: WidgetStateProperty.resolveWith((states) {
+          if (states.contains(WidgetState.selected)) {
+            return colorScheme.primary.withValues(alpha: 0.5);
           }
-          return colorScheme.surfaceVariant;
+          return colorScheme.surfaceContainerHighest;
         }),
       ),
       
       // Divider theme
       dividerTheme: DividerThemeData(
-        color: colorScheme.outline.withOpacity(0.2),
+        color: colorScheme.outline.withValues(alpha: 0.2),
         thickness: 1,
       ),
     );

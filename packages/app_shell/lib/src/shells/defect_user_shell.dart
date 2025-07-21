@@ -154,7 +154,7 @@ class DefectUserShell extends ConsumerWidget {
                 Text(
                   building?.name ?? 'Building Portal',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onPrimary.withOpacity(0.8),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -479,7 +479,7 @@ class DefectUserProfileSheet extends StatelessWidget {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: theme.colorScheme.surfaceVariant,
+              color: theme.colorScheme.surfaceContainerHighest,
               borderRadius: BorderRadius.circular(8),
             ),
             child: Row(

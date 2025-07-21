@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter/semantics.dart';
 
 /// Accessibility helper utilities
 /// 
@@ -29,7 +30,7 @@ class AccessibilityHelper {
   
   /// Gets the current text scale factor
   static double getTextScaleFactor(BuildContext context) {
-    return MediaQuery.of(context).textScaleFactor;
+    return MediaQuery.of(context).textScaler.scale(1.0);
   }
   
   /// Checks if large text is enabled (> 130% scaling)
@@ -38,7 +39,7 @@ class AccessibilityHelper {
   }
   
   /// Provides haptic feedback if enabled
-  static void provideFeedback(HapticFeedbackType type) {
+  static void provideFeedback() {
     HapticFeedback.lightImpact();
   }
   
@@ -130,5 +131,5 @@ class AccessibilityHelper {
     );
   }
   
-  private AccessibilityHelper._();
+  AccessibilityHelper._();
 }

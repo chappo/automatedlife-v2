@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:material_color_utilities/material_color_utilities.dart';
 import '../accessibility/contrast_checker.dart';
 
 /// Design system color palette
@@ -94,8 +93,6 @@ class NWColors {
     onError: Color(0xFFFFFFFF),
     surface: surfaceHighContrast,
     onSurface: onSurfaceHighContrast,
-    background: surfaceHighContrast,
-    onBackground: onSurfaceHighContrast,
   );
   
   static const ColorScheme _highContrastDarkScheme = ColorScheme(
@@ -108,8 +105,6 @@ class NWColors {
     onError: Color(0xFF000000),
     surface: primaryHighContrast,
     onSurface: onPrimaryHighContrast,
-    background: primaryHighContrast,
-    onBackground: onPrimaryHighContrast,
   );
   
   /// Validates a color scheme for accessibility compliance
@@ -147,5 +142,5 @@ class NWColors {
     'intercom': const Color(0xFFFF9800),
   };
   
-  private NWColors._();
+  NWColors._();
 }

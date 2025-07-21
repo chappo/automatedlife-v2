@@ -202,7 +202,7 @@ class ResidentShell extends ConsumerWidget {
                 Text(
                   'Resident Portal',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.colorScheme.onPrimary.withOpacity(0.8),
+                    color: theme.colorScheme.onPrimary.withValues(alpha: 0.8),
                   ),
                 ),
               ],
@@ -315,8 +315,10 @@ class ResidentShell extends ConsumerWidget {
 
   void _updateCapabilitiesForBuilding(WidgetRef ref, Building? building) {
     if (building?.capabilities != null) {
+      // TODO: Update to use BuildingCapabilitiesResponse with enabled/available arrays
+      // Temporarily removing isEnabled check since Capability model no longer has this field
       final capabilities = building!.capabilities!
-          .where((cap) => cap.isEnabled)
+          // .where((cap) => cap.isEnabled) // Temporarily commented out
           .map((cap) => cap.key)
           .toList();
       

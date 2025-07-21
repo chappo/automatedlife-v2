@@ -6,43 +6,65 @@ part 'user.g.dart';
 @JsonSerializable()
 class User {
   final int id;
-  final String name;
+  @JsonKey(name: 'first_name')
+  final String firstName;
+  @JsonKey(name: 'last_name')
+  final String lastName;
   final String email;
-  @JsonKey(name: 'email_verified_at')
-  final DateTime? emailVerifiedAt;
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
-  @JsonKey(name: 'updated_at')
-  final DateTime updatedAt;
+  @JsonKey(name: 'preferred_name')
+  final String? preferredName;
+  @JsonKey(name: 'is_admin')
+  final bool isAdmin;
+  @JsonKey(name: 'is_active')
+  final bool isActive;
+  @JsonKey(name: 'lote_created')
+  final DateTime? createdAt;
+  @JsonKey(name: 'lote_updated')
+  final DateTime? updatedAt;
   final List<Building>? buildings;
 
   const User({
     required this.id,
-    required this.name,
+    required this.firstName,
+    required this.lastName,
     required this.email,
-    this.emailVerifiedAt,
-    required this.createdAt,
-    required this.updatedAt,
+    this.preferredName,
+    required this.isAdmin,
+    required this.isActive,
+    this.createdAt,
+    this.updatedAt,
     this.buildings,
   });
+  
+  /// Get display name (preferred name or first name)
+  String get displayName => preferredName?.isNotEmpty == true ? preferredName! : firstName;
+  
+  /// Get full name
+  String get fullName => '$firstName $lastName';
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);
   Map<String, dynamic> toJson() => _$UserToJson(this);
 
   User copyWith({
     int? id,
-    String? name,
+    String? firstName,
+    String? lastName,
     String? email,
-    DateTime? emailVerifiedAt,
+    String? preferredName,
+    bool? isAdmin,
+    bool? isActive,
     DateTime? createdAt,
     DateTime? updatedAt,
     List<Building>? buildings,
   }) {
     return User(
       id: id ?? this.id,
-      name: name ?? this.name,
+      firstName: firstName ?? this.firstName,
+      lastName: lastName ?? this.lastName,
       email: email ?? this.email,
-      emailVerifiedAt: emailVerifiedAt ?? this.emailVerifiedAt,
+      preferredName: preferredName ?? this.preferredName,
+      isAdmin: isAdmin ?? this.isAdmin,
+      isActive: isActive ?? this.isActive,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       buildings: buildings ?? this.buildings,
@@ -54,9 +76,9 @@ class User {
     if (identical(this, other)) return true;
     return other is User &&
         other.id == id &&
-        other.name == name &&
+        other.firstName == firstName &&
+        other.lastName == lastName &&
         other.email == email &&
-        other.emailVerifiedAt == emailVerifiedAt &&
         other.createdAt == createdAt &&
         other.updatedAt == updatedAt;
   }
@@ -64,15 +86,15 @@ class User {
   @override
   int get hashCode {
     return id.hashCode ^
-        name.hashCode ^
+        firstName.hashCode ^
+        lastName.hashCode ^
         email.hashCode ^
-        emailVerifiedAt.hashCode ^
         createdAt.hashCode ^
         updatedAt.hashCode;
   }
 
   @override
   String toString() {
-    return 'User(id: $id, name: $name, email: $email, emailVerifiedAt: $emailVerifiedAt, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'User(id: $id, firstName: $firstName, lastName: $lastName, email: $email, isAdmin: $isAdmin, createdAt: $createdAt, updatedAt: $updatedAt)';
   }
 }

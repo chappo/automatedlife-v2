@@ -21,5 +21,5 @@ class NWElevation {
   static const double fab = level2;
   static const double fabPressed = level3;
   
-  private NWElevation._();
+  NWElevation._();
 }

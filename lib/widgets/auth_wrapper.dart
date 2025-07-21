@@ -10,7 +10,7 @@ import '../screens/auth/building_selection_screen.dart';
 /// splash, login, building selection, and main app screens based
 /// on the current authentication state.
 class AuthWrapper extends StatefulWidget {
-  final Widget Function(BuildContext context, User user, Building building) homeBuilder;
+  final Widget Function(BuildContext context, User user, Building building, List<Building> buildings) homeBuilder;
 
   const AuthWrapper({
     super.key,
@@ -162,8 +162,8 @@ class _AuthWrapperState extends State<AuthWrapper> {
         }
 
         // If user and building are selected, show main app
-        if (_selectedBuilding != null) {
-          return widget.homeBuilder(context, _currentUser!, _selectedBuilding!);
+        if (_selectedBuilding != null && _userBuildings != null) {
+          return widget.homeBuilder(context, _currentUser!, _selectedBuilding!, _userBuildings!);
         }
 
         // Fallback: show building selection or splash
@@ -220,7 +220,7 @@ class _NoAccessScreen extends StatelessWidget {
                 Icon(
                   Icons.no_accounts_outlined,
                   size: 80,
-                  color: colorScheme.onSurface.withOpacity(0.5),
+                  color: colorScheme.onSurface.withValues(alpha: 0.5),
                 ),
                 
                 const SizedBox(height: 24),
@@ -237,9 +237,9 @@ class _NoAccessScreen extends StatelessWidget {
                 const SizedBox(height: 16),
                 
                 Text(
-                  'Hello ${user.name},\n\nYou don\'t currently have access to any buildings. Please contact your building administrator to request access.',
+                  'Hello ${user.displayName},\n\nYou don\'t currently have access to any buildings. Please contact your building administrator to request access.',
                   style: theme.textTheme.bodyLarge?.copyWith(
-                    color: colorScheme.onSurface.withOpacity(0.7),
+                    color: colorScheme.onSurface.withValues(alpha: 0.7),
                   ),
                   textAlign: TextAlign.center,
                 ),

@@ -23,9 +23,6 @@ Building _$BuildingFromJson(Map<String, dynamic> json) => Building(
   capabilities: (json['capabilities'] as List<dynamic>?)
       ?.map((e) => Capability.fromJson(e as Map<String, dynamic>))
       .toList(),
-  apiSubdomain: json['api_subdomain'] as String?,
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
 );
 
 Map<String, dynamic> _$BuildingToJson(Building instance) => <String, dynamic>{
@@ -41,7 +38,4 @@ Map<String, dynamic> _$BuildingToJson(Building instance) => <String, dynamic>{
   'is_active': instance.isActive,
   'branding': instance.branding,
   'capabilities': instance.capabilities,
-  'api_subdomain': instance.apiSubdomain,
-  'created_at': instance.createdAt.toIso8601String(),
-  'updated_at': instance.updatedAt.toIso8601String(),
 };

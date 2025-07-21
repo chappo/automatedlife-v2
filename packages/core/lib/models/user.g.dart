@@ -8,13 +8,18 @@ part of 'user.dart';
 
 User _$UserFromJson(Map<String, dynamic> json) => User(
   id: (json['id'] as num).toInt(),
-  name: json['name'] as String,
+  firstName: json['first_name'] as String,
+  lastName: json['last_name'] as String,
   email: json['email'] as String,
-  emailVerifiedAt: json['email_verified_at'] == null
+  preferredName: json['preferred_name'] as String?,
+  isAdmin: json['is_admin'] as bool,
+  isActive: json['is_active'] as bool,
+  createdAt: json['lote_created'] == null
       ? null
-      : DateTime.parse(json['email_verified_at'] as String),
-  createdAt: DateTime.parse(json['created_at'] as String),
-  updatedAt: DateTime.parse(json['updated_at'] as String),
+      : DateTime.parse(json['lote_created'] as String),
+  updatedAt: json['lote_updated'] == null
+      ? null
+      : DateTime.parse(json['lote_updated'] as String),
   buildings: (json['buildings'] as List<dynamic>?)
       ?.map((e) => Building.fromJson(e as Map<String, dynamic>))
       .toList(),
@@ -22,10 +27,13 @@ User _$UserFromJson(Map<String, dynamic> json) => User(
 
 Map<String, dynamic> _$UserToJson(User instance) => <String, dynamic>{
   'id': instance.id,
-  'name': instance.name,
+  'first_name': instance.firstName,
+  'last_name': instance.lastName,
   'email': instance.email,
-  'email_verified_at': instance.emailVerifiedAt?.toIso8601String(),
-  'created_at': instance.createdAt.toIso8601String(),
-  'updated_at': instance.updatedAt.toIso8601String(),
+  'preferred_name': instance.preferredName,
+  'is_admin': instance.isAdmin,
+  'is_active': instance.isActive,
+  'lote_created': instance.createdAt?.toIso8601String(),
+  'lote_updated': instance.updatedAt?.toIso8601String(),
   'buildings': instance.buildings,
 };

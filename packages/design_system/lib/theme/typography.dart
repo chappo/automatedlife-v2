@@ -40,139 +40,142 @@ class NWTypography {
       ),
       displaySmall: baseTextTheme.displaySmall?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurface,
       ),
       
       // Headline styles
       headlineLarge: baseTextTheme.headlineLarge?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurface,
       ),
       headlineMedium: baseTextTheme.headlineMedium?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurface,
       ),
       headlineSmall: baseTextTheme.headlineSmall?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurface,
       ),
       
       // Title styles
       titleLarge: baseTextTheme.titleLarge?.copyWith(
         fontFamily: family,
-        fontWeight: medium,
+        fontWeight: NWTypography.medium,
         color: colorScheme.onSurface,
       ),
       titleMedium: baseTextTheme.titleMedium?.copyWith(
         fontFamily: family,
-        fontWeight: medium,
+        fontWeight: NWTypography.medium,
         color: colorScheme.onSurface,
       ),
       titleSmall: baseTextTheme.titleSmall?.copyWith(
         fontFamily: family,
-        fontWeight: medium,
+        fontWeight: NWTypography.medium,
         color: colorScheme.onSurface,
       ),
       
       // Body styles
       bodyLarge: baseTextTheme.bodyLarge?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurface,
       ),
       bodyMedium: baseTextTheme.bodyMedium?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurface,
       ),
       bodySmall: baseTextTheme.bodySmall?.copyWith(
         fontFamily: family,
-        fontWeight: regular,
+        fontWeight: NWTypography.regular,
         color: colorScheme.onSurfaceVariant,
       ),
       
       // Label styles
       labelLarge: baseTextTheme.labelLarge?.copyWith(
         fontFamily: family,
-        fontWeight: medium,
+        fontWeight: NWTypography.medium,
         color: colorScheme.onSurface,
       ),
       labelMedium: baseTextTheme.labelMedium?.copyWith(
         fontFamily: family,
-        fontWeight: medium,
+        fontWeight: NWTypography.medium,
         color: colorScheme.onSurface,
       ),
       labelSmall: baseTextTheme.labelSmall?.copyWith(
         fontFamily: family,
-        fontWeight: medium,
+        fontWeight: NWTypography.medium,
         color: colorScheme.onSurfaceVariant,
       ),
     );
   }
   
-  /// Custom semantic text styles
-  /// 
-  /// Provides context-specific text styles for common use cases.
-  static class Semantic {
+  NWTypography._();
+}
+
+/// Custom semantic text styles
+/// 
+/// Provides context-specific text styles for common use cases.
+class NWTypographySemantic {
     static TextStyle caption(ColorScheme colorScheme) => TextStyle(
-      fontFamily: primaryFontFamily,
+      fontFamily: NWTypography.primaryFontFamily,
       fontSize: 12,
-      fontWeight: regular,
+      fontWeight: NWTypography.regular,
       color: colorScheme.onSurfaceVariant,
       height: 1.33,
     );
     
     static TextStyle buttonText(ColorScheme colorScheme) => TextStyle(
-      fontFamily: primaryFontFamily,
+      fontFamily: NWTypography.primaryFontFamily,
       fontSize: 14,
-      fontWeight: medium,
+      fontWeight: NWTypography.medium,
       color: colorScheme.onPrimary,
       letterSpacing: 1.25,
     );
     
     static TextStyle errorText(ColorScheme colorScheme) => TextStyle(
-      fontFamily: primaryFontFamily,
+      fontFamily: NWTypography.primaryFontFamily,
       fontSize: 12,
-      fontWeight: regular,
+      fontWeight: NWTypography.regular,
       color: colorScheme.error,
       height: 1.33,
     );
     
     static TextStyle successText(ColorScheme colorScheme) => TextStyle(
-      fontFamily: primaryFontFamily,
+      fontFamily: NWTypography.primaryFontFamily,
       fontSize: 12,
-      fontWeight: regular,
+      fontWeight: NWTypography.regular,
       color: const Color(0xFF4CAF50),
       height: 1.33,
     );
     
     static TextStyle warningText(ColorScheme colorScheme) => TextStyle(
-      fontFamily: primaryFontFamily,
+      fontFamily: NWTypography.primaryFontFamily,
       fontSize: 12,
-      fontWeight: regular,
+      fontWeight: NWTypography.regular,
       color: const Color(0xFFFF9800),
       height: 1.33,
     );
     
     static TextStyle monoText(ColorScheme colorScheme) => TextStyle(
-      fontFamily: secondaryFontFamily,
+      fontFamily: NWTypography.secondaryFontFamily,
       fontSize: 14,
-      fontWeight: regular,
+      fontWeight: NWTypography.regular,
       color: colorScheme.onSurface,
       height: 1.5,
     );
     
-    private Semantic._();
-  }
-  
-  /// Text style modifiers
-  /// 
-  /// Utility functions to modify existing text styles.
-  static class Modifiers {
+  NWTypographySemantic._();
+}
+
+/// Text style modifiers
+/// 
+/// Utility functions to modify existing text styles.
+class NWTypographyModifiers {
     static TextStyle withColor(TextStyle style, Color color) {
       return style.copyWith(color: color);
     }
@@ -186,15 +189,12 @@ class NWTypography {
     }
     
     static TextStyle withOpacity(TextStyle style, double opacity) {
-      return style.copyWith(color: style.color?.withOpacity(opacity));
+      return style.copyWith(color: style.color?.withValues(alpha: opacity));
     }
     
     static TextStyle withLetterSpacing(TextStyle style, double spacing) {
       return style.copyWith(letterSpacing: spacing);
     }
     
-    private Modifiers._();
-  }
-  
-  private NWTypography._();
+  NWTypographyModifiers._();
 }

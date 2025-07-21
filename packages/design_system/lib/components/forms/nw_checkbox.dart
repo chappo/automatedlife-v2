@@ -56,7 +56,7 @@ class NWCheckbox extends StatelessWidget {
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: enabled 
                     ? theme.colorScheme.onSurface
-                    : theme.colorScheme.onSurface.withOpacity(0.38),
+                    : theme.colorScheme.onSurface.withValues(alpha: 0.38),
                 ),
               ),
             ),

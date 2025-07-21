@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:dio/dio.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:design_system/design_system.dart';
 import 'package:core/core.dart';
+import 'package:app_shell/app_shell.dart';
 import 'widgets/auth_wrapper.dart';
-import 'screens/home_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -11,37 +11,18 @@ void main() async {
   // Initialize services
   await _initializeServices();
   
-  runApp(const BuildingManagerApp());
+  runApp(const ProviderScope(child: BuildingManagerApp()));
 }
 
 Future<void> _initializeServices() async {
-  // Initialize Dio client
-  final dio = Dio();
-  
-  // Configure Dio for development (update base URL for testing)
-  dio.options.baseUrl = 'http://10.10.0.203:8000/api/v1';
-  dio.options.connectTimeout = const Duration(seconds: 30);
-  dio.options.receiveTimeout = const Duration(seconds: 30);
-  dio.options.headers = {
-    'Accept': 'application/json',
-    'Content-Type': 'application/json',
-  };
-  
-  // Add request/response interceptors for logging (development only)
-  if (const bool.fromEnvironment('dart.vm.product') == false) {
-    dio.interceptors.add(
-      LogInterceptor(
-        requestBody: true,
-        responseBody: true,
-        requestHeader: true,
-        responseHeader: false,
-        error: true,
-      ),
-    );
-  }
-  
-  // Initialize auth service
-  AuthService.instance.initialize(dio);
+  // Initialize API client with development URL
+  ApiClient.instance.initialize(
+    baseUrl: 'http://10.10.0.203:8000/api/v1',
+    connectTimeout: const Duration(seconds: 30),
+    receiveTimeout: const Duration(seconds: 30),
+    enableLogging: true, // Enable logging for development
+    maxRetries: 3,
+  );
 }
 
 class BuildingManagerApp extends StatelessWidget {
@@ -56,9 +37,10 @@ class BuildingManagerApp extends StatelessWidget {
       darkTheme: NWAppTheme.darkTheme,
       themeMode: ThemeMode.system,
       home: AuthWrapper(
-        homeBuilder: (context, user, building) => HomeScreen(
+        homeBuilder: (context, user, building, buildings) => AppShell(
           user: user,
-          building: building,
+          currentBuilding: building,
+          availableBuildings: buildings,
         ),
       ),
     );

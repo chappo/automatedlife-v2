@@ -1,6 +1,3 @@
-/// Core package for Building Manager app with API client and authentication
-library core;
-
 // Export models
 export 'models/models.dart';
 

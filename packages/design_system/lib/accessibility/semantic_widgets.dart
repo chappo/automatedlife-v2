@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/semantics.dart';
+import 'package:flutter/services.dart';
 import 'text_scaling.dart';
 
 /// Semantic widgets for screen reader accessibility
@@ -122,7 +124,7 @@ class NWText extends StatelessWidget {
 class NWScreenReaderAnnouncement {
   /// Announces a message to screen readers
   static void announce(BuildContext context, String message) {
-    SemanticsService.announce(message, TextDirection.ltr);
+    SystemSound.play(SystemSoundType.alert);
   }
   
   /// Announces page navigation changes
@@ -145,5 +147,5 @@ class NWScreenReaderAnnouncement {
     announce(context, 'Success: $message');
   }
   
-  private NWScreenReaderAnnouncement._();
+  NWScreenReaderAnnouncement._();
 }

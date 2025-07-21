@@ -22,5 +22,5 @@ class NWSpacing {
   static const double gridGap = medium;
   static const double listItemSpacing = small;
   
-  private NWSpacing._();
+  NWSpacing._();
 }

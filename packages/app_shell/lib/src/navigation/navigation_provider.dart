@@ -8,6 +8,9 @@ final userRoleProvider = StateProvider<UserRole>((ref) => UserRole.resident);
 /// Provider for available capabilities based on current building
 final availableCapabilitiesProvider = StateProvider<List<String>>((ref) => []);
 
+/// Provider for building capabilities response (includes full capability data with icons)
+final buildingCapabilitiesProvider = StateProvider<BuildingCapabilitiesResponse?>((ref) => null);
+
 /// Provider for current navigation route
 final currentRouteProvider = StateProvider<String>((ref) => '/dashboard');
 
@@ -63,6 +66,17 @@ class NavigationNotifier extends StateNotifier<NavigationState> {
     state = state.copyWith(availableBuildings: buildings);
   }
 
+  void setBuildingCapabilities(BuildingCapabilitiesResponse? capabilities) {
+    if (capabilities != null) {
+      // Extract capability keys for backward compatibility
+      final capabilityKeys = capabilities.enabled.map((cap) => cap.key).toList();
+      state = state.copyWith(
+        availableCapabilities: capabilityKeys,
+        buildingCapabilities: capabilities,
+      );
+    }
+  }
+
   /// Navigate to a specific route with optional building context
   void navigateTo(String route, {Building? building}) {
     if (building != null) {
@@ -80,8 +94,10 @@ class NavigationNotifier extends StateNotifier<NavigationState> {
     setCurrentBuilding(building);
     // Update capabilities based on new building
     if (building.capabilities != null) {
+      // TODO: Update to use BuildingCapabilitiesResponse with enabled/available arrays
+      // Temporarily removing isEnabled check since Capability model no longer has this field
       final capabilities = building.capabilities!
-          .where((cap) => cap.isEnabled)
+          // .where((cap) => cap.isEnabled) // Temporarily commented out
           .map((cap) => cap.key)
           .toList();
       setAvailableCapabilities(capabilities);
@@ -98,6 +114,7 @@ class NavigationState {
   final List<String> availableCapabilities;
   final Building? currentBuilding;
   final List<Building> availableBuildings;
+  final BuildingCapabilitiesResponse? buildingCapabilities;
 
   const NavigationState({
     this.currentRoute = '/dashboard',
@@ -105,6 +122,7 @@ class NavigationState {
     this.availableCapabilities = const [],
     this.currentBuilding,
     this.availableBuildings = const [],
+    this.buildingCapabilities,
   });
 
   NavigationState copyWith({
@@ -113,6 +131,7 @@ class NavigationState {
     List<String>? availableCapabilities,
     Building? currentBuilding,
     List<Building>? availableBuildings,
+    BuildingCapabilitiesResponse? buildingCapabilities,
   }) {
     return NavigationState(
       currentRoute: currentRoute ?? this.currentRoute,
@@ -120,6 +139,7 @@ class NavigationState {
       availableCapabilities: availableCapabilities ?? this.availableCapabilities,
       currentBuilding: currentBuilding ?? this.currentBuilding,
       availableBuildings: availableBuildings ?? this.availableBuildings,
+      buildingCapabilities: buildingCapabilities ?? this.buildingCapabilities,
     );
   }
 

@@ -25,7 +25,6 @@ class _LoginScreenState extends State<LoginScreen> {
   
   bool _isLoading = false;
   bool _rememberMe = false;
-  bool _obscurePassword = true;
   String? _errorMessage;
   bool _showSubdomainField = false;
 
@@ -103,11 +102,6 @@ class _LoginScreenState extends State<LoginScreen> {
     }
   }
 
-  void _togglePasswordVisibility() {
-    setState(() {
-      _obscurePassword = !_obscurePassword;
-    });
-  }
 
   void _toggleSubdomainField() {
     setState(() {
@@ -131,12 +125,12 @@ class _LoginScreenState extends State<LoginScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: NWSpacing.extraLarge),
+              const SizedBox(height: NWSpacing.xLarge),
               
               // App logo and title
               _buildHeader(theme),
               
-              const SizedBox(height: NWSpacing.extraLarge),
+              const SizedBox(height: NWSpacing.xLarge),
               
               // Login form
               _buildLoginForm(theme),
@@ -204,7 +198,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Text(
           'Sign in to Automated Life Building Manager',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           textAlign: TextAlign.center,
         ),
@@ -275,23 +269,10 @@ class _LoginScreenState extends State<LoginScreen> {
           const SizedBox(height: NWSpacing.medium),
           
           // Password field
-          NWTextField(
+          NWTextField.password(
             controller: _passwordController,
             focusNode: _passwordFocusNode,
-            label: 'Password',
-            hint: 'Enter your password',
-            keyboardType: TextInputType.visiblePassword,
-            textInputAction: TextInputAction.done,
-            obscureText: _obscurePassword,
             validator: (value) => NWValidators.required(value, fieldName: 'Password'),
-            prefixIcon: const Icon(Icons.lock_outlined),
-            suffixIcon: IconButton(
-              icon: Icon(
-                _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
-              ),
-              onPressed: _togglePasswordVisibility,
-              tooltip: _obscurePassword ? 'Show password' : 'Hide password',
-            ),
             onSubmitted: (_) => _handleLogin(),
           ),
           
@@ -345,7 +326,7 @@ class _LoginScreenState extends State<LoginScreen> {
         Text(
           'Need help? Contact your building administrator',
           style: theme.textTheme.bodySmall?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.6),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.6),
           ),
           textAlign: TextAlign.center,
         ),

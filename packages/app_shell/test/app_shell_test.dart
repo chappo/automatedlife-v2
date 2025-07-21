@@ -12,8 +12,11 @@ void main() {
     setUp(() {
       testUser = User(
         id: 1,
-        name: 'Test User',
+        firstName: 'Test',
+        lastName: 'User',
         email: 'test@example.com',
+        isAdmin: false,
+        isActive: true,
         createdAt: DateTime.now(),
         updatedAt: DateTime.now(),
       );
@@ -22,24 +25,18 @@ void main() {
         id: 1,
         name: 'Test Building',
         isActive: true,
-        createdAt: DateTime.now(),
-        updatedAt: DateTime.now(),
         capabilities: [
           Capability(
             id: 1,
             name: 'Defects',
             key: 'defects',
-            isEnabled: true,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
+            type: 'internal',
           ),
           Capability(
             id: 2,
             name: 'Documents',
             key: 'documents',
-            isEnabled: true,
-            createdAt: DateTime.now(),
-            updatedAt: DateTime.now(),
+            type: 'internal',
           ),
         ],
       );

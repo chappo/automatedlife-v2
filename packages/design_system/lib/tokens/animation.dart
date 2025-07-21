@@ -1,3 +1,5 @@
+import 'package:flutter/material.dart';
+
 /// Design system animation tokens
 /// 
 /// Provides consistent animation values for smooth interactions.
@@ -30,5 +32,5 @@ class NWAnimation {
   static const Curve dialogCurve = easeOut;
   static const Curve bottomSheetCurve = easeOut;
   
-  private NWAnimation._();
+  NWAnimation._();
 }

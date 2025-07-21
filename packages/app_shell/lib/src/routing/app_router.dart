@@ -1,19 +1,15 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:core/core.dart';
 import '../models/models.dart';
 import '../navigation/navigation_provider.dart';
 import '../shells/shells.dart';
 
 /// Provider for the app router
 final appRouterProvider = Provider<GoRouter>((ref) {
-  final navigationNotifier = ref.read(navigationProvider.notifier);
-  
   return GoRouter(
     initialLocation: '/dashboard',
-    refreshListenable: GoRouterRefreshStream(ref.read(navigationProvider.stream)),
+    refreshListenable: GoRouterRefreshStream(ref),
     redirect: (context, state) {
       return _handleRedirect(ref, state);
     },
@@ -27,7 +23,9 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           GoRoute(
             path: '/dashboard',
             name: 'dashboard',
-            builder: (context, state) => const DashboardPage(),
+            builder: (context, state) => const Scaffold(
+              body: Center(child: Text('Dashboard - Coming Soon')),
+            ),
           ),
           
           // Defects routes
@@ -164,7 +162,7 @@ final appRouterProvider = Provider<GoRouter>((ref) {
 });
 
 /// Handle route redirects based on user role and capabilities
-String? _handleRedirect(WidgetRef ref, GoRouterState state) {
+String? _handleRedirect(ProviderRef ref, GoRouterState state) {
   final navigationState = ref.read(navigationProvider);
   final location = state.matchedLocation;
   
@@ -234,14 +232,12 @@ bool _canAccessRoute(String route, NavigationState navigationState) {
 
 
 /// Build the appropriate shell based on user role
-Widget _buildShell(BuildContext context, WidgetRef ref, GoRouterState state, Widget child) {
+Widget _buildShell(BuildContext context, ProviderRef ref, GoRouterState state, Widget child) {
   final navigationState = ref.watch(navigationProvider);
   final currentRoute = state.matchedLocation;
   
   // Update current route in navigation state
-  WidgetsBinding.instance.addPostFrameCallback((_) {
-    ref.read(navigationProvider.notifier).setCurrentRoute(currentRoute);
-  });
+  ref.read(navigationProvider.notifier).setCurrentRoute(currentRoute);
   
   switch (navigationState.userRole) {
     case UserRole.admin:
@@ -274,18 +270,18 @@ Widget _buildShell(BuildContext context, WidgetRef ref, GoRouterState state, Wid
 
 /// Stream wrapper for GoRouter refresh
 class GoRouterRefreshStream extends ChangeNotifier {
-  GoRouterRefreshStream(Stream<NavigationState> stream) {
+  GoRouterRefreshStream(ProviderRef ref) {
     notifyListeners();
-    _subscription = stream.asBroadcastStream().listen(
-      (NavigationState _) => notifyListeners(),
-    );
+    _subscription = ref.listen(navigationProvider, (previous, next) {
+      notifyListeners();
+    });
   }
 
-  late final StreamSubscription<NavigationState> _subscription;
+  late final ProviderSubscription<NavigationState> _subscription;
 
   @override
   void dispose() {
-    _subscription.cancel();
+    _subscription.close();
     super.dispose();
   }
 }

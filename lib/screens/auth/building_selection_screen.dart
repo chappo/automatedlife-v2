@@ -147,7 +147,7 @@ class _BuildingSelectionScreenState extends State<BuildingSelectionScreen> {
       children: [
         // Welcome message
         Text(
-          'Welcome, ${widget.user.name}!',
+          'Welcome, ${widget.user.displayName}!',
           style: theme.textTheme.headlineMedium?.copyWith(
             color: theme.colorScheme.onSurface,
             fontWeight: FontWeight.bold,
@@ -161,7 +161,7 @@ class _BuildingSelectionScreenState extends State<BuildingSelectionScreen> {
         Text(
           'You have access to multiple buildings. Please select which building you\'d like to manage.',
           style: theme.textTheme.bodyMedium?.copyWith(
-            color: theme.colorScheme.onSurface.withOpacity(0.7),
+            color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
           ),
           textAlign: TextAlign.center,
         ),
@@ -178,20 +178,20 @@ class _BuildingSelectionScreenState extends State<BuildingSelectionScreen> {
             Icon(
               Icons.business_outlined,
               size: 64,
-              color: theme.colorScheme.onSurface.withOpacity(0.5),
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
             ),
             const SizedBox(height: NWSpacing.medium),
             Text(
               'No buildings available',
               style: theme.textTheme.bodyLarge?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.7),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.7),
               ),
             ),
             const SizedBox(height: NWSpacing.small),
             Text(
               'Contact your administrator for access',
               style: theme.textTheme.bodyMedium?.copyWith(
-                color: theme.colorScheme.onSurface.withOpacity(0.5),
+                color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
               ),
             ),
           ],
@@ -256,7 +256,7 @@ class _BuildingCard extends StatelessWidget {
               border: Border.all(
                 color: isSelected 
                   ? colorScheme.primary 
-                  : colorScheme.outline.withOpacity(0.2),
+                  : colorScheme.outline.withValues(alpha: 0.2),
                 width: isSelected ? 2 : 1,
               ),
             ),
@@ -303,8 +303,8 @@ class _BuildingCard extends StatelessWidget {
                           building.description!,
                           style: theme.textTheme.bodyMedium?.copyWith(
                             color: isSelected 
-                              ? colorScheme.onPrimaryContainer.withOpacity(0.8) 
-                              : colorScheme.onSurface.withOpacity(0.7),
+                              ? colorScheme.onPrimaryContainer.withValues(alpha: 0.8) 
+                              : colorScheme.onSurface.withValues(alpha: 0.7),
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -319,8 +319,8 @@ class _BuildingCard extends StatelessWidget {
                               Icons.location_on_outlined,
                               size: 16,
                               color: isSelected 
-                                ? colorScheme.onPrimaryContainer.withOpacity(0.6) 
-                                : colorScheme.onSurface.withOpacity(0.6),
+                                ? colorScheme.onPrimaryContainer.withValues(alpha: 0.6) 
+                                : colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                             const SizedBox(width: 4),
                             Expanded(
@@ -328,8 +328,8 @@ class _BuildingCard extends StatelessWidget {
                                 _formatAddress(building),
                                 style: theme.textTheme.bodySmall?.copyWith(
                                   color: isSelected 
-                                    ? colorScheme.onPrimaryContainer.withOpacity(0.6) 
-                                    : colorScheme.onSurface.withOpacity(0.6),
+                                    ? colorScheme.onPrimaryContainer.withValues(alpha: 0.6) 
+                                    : colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,

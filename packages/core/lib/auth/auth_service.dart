@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:dio/dio.dart';
+import '../api/api_client.dart';
 import '../models/models.dart';
 import '../storage/secure_storage_service.dart';
 import '../utils/exceptions.dart';
@@ -18,6 +19,12 @@ class AuthService {
   final _authStateController = StreamController<AuthState>.broadcast();
   final _userController = StreamController<User?>.broadcast();
   final _selectedBuildingController = StreamController<Building?>.broadcast();
+  final _buildingCapabilitiesController = StreamController<BuildingCapabilitiesResponse?>.broadcast();
+  
+  // Cache building capabilities to prevent duplicate API calls
+  BuildingCapabilitiesResponse? _cachedCapabilities;
+  int? _cachedBuildingId;
+  final Map<int, Future<BuildingCapabilitiesResponse>> _ongoingRequests = {};
 
   /// Stream of authentication state changes
   Stream<AuthState> get authStateStream => _authStateController.stream;
@@ -27,6 +34,9 @@ class AuthService {
   
   /// Stream of selected building changes
   Stream<Building?> get selectedBuildingStream => _selectedBuildingController.stream;
+  
+  /// Stream of building capabilities changes
+  Stream<BuildingCapabilitiesResponse?> get buildingCapabilitiesStream => _buildingCapabilitiesController.stream;
 
   /// Initialize the auth service with Dio instance
   void initialize(Dio dio) {
@@ -40,11 +50,15 @@ class AuthService {
     String? buildingSubdomain,
   }) async {
     try {
-      // Determine the API endpoint
-      String baseUrl = buildingSubdomain != null && buildingSubdomain.isNotEmpty
-          ? 'https://$buildingSubdomain.automatedlife.io/api/v1'
-          : 'https://api.automatedlife.io/api/v1';
-
+      // For development, use local server - try different approaches
+      String baseUrl = 'http://10.10.0.203:8000/api/v1';
+      
+      // Try alternative endpoint first to bypass throttle middleware
+      String loginEndpoint = '$baseUrl/auth/login';
+      
+      print('DEBUG: Attempting login to: $baseUrl/auth/login');
+      print('DEBUG: Email: $email');
+      
       final response = await _dio.post(
         '$baseUrl/auth/login',
         data: {
@@ -53,33 +67,90 @@ class AuthService {
         },
       );
 
-      final data = response.data as Map<String, dynamic>;
+      print('DEBUG: Login response status: ${response.statusCode}');
+      print('DEBUG: Full login response: ${response.data}');
+
+      final responseData = response.data as Map<String, dynamic>;
+      final data = responseData['data'] as Map<String, dynamic>?;
       
-      // Extract tokens and user data
-      final accessToken = data['access_token'] as String;
-      final refreshToken = data['refresh_token'] as String?;
-      final userData = data['user'] as Map<String, dynamic>;
-      final buildingsData = data['buildings'] as List<dynamic>?;
+      if (data == null) {
+        print('ERROR: Missing data field in login response');
+        print('Response structure: ${responseData.keys.toList()}');
+        throw AuthException('Missing data in login response');
+      }
+      
+      print('DEBUG: Data structure: ${data.keys.toList()}');
+      
+      // Extract tokens and user data with correct field names
+      final accessToken = data['token'] as String?;
+      final refreshToken = data['refresh_token'] as String?; // Usually null for this API
+      final userData = data['user'] as Map<String, dynamic>?;
+      
+      // Validate required fields
+      if (accessToken == null) {
+        throw AuthException('Missing access token in login response');
+      }
+      if (userData == null) {
+        throw AuthException('Missing user data in login response');
+      }
 
-      // Parse user and buildings
+      // Parse user
       final user = User.fromJson(userData);
-      final buildings = buildingsData
-          ?.map((buildingData) => Building.fromJson(buildingData as Map<String, dynamic>))
-          .toList();
 
-      // Store tokens and user data
+      // Store tokens and user data first
       await _storage.storeAuthToken(accessToken);
       if (refreshToken != null) {
         await _storage.storeRefreshToken(refreshToken);
       }
       await _storage.storeUser(user);
-      if (buildings != null) {
-        await _storage.storeBuildings(buildings);
-        // Auto-select first building if available
-        if (buildings.isNotEmpty) {
-          await _storage.storeSelectedBuilding(buildings.first);
-          _selectedBuildingController.add(buildings.first);
+
+      // Fetch user's buildings with the new token
+      List<Building>? buildings;
+      try {
+        print('Fetching user buildings...');
+        final fetchedBuildings = await ApiClient.instance.getUserBuildings();
+        print('Successfully fetched ${fetchedBuildings.length} buildings');
+        buildings = fetchedBuildings;
+        
+        await _storage.storeBuildings(fetchedBuildings);
+        
+        // Select building based on previous session or default to first
+        if (fetchedBuildings.isNotEmpty) {
+          Building selectedBuilding;
+          
+          // Check if user has a previously selected building
+          final previousBuilding = await _storage.getSelectedBuilding();
+          if (previousBuilding != null) {
+            // Check if the previous building is still available
+            final matchingBuilding = fetchedBuildings.where(
+              (building) => building.id == previousBuilding.id,
+            ).firstOrNull ?? fetchedBuildings.first;
+            selectedBuilding = matchingBuilding;
+            
+            if (matchingBuilding.id == previousBuilding.id) {
+              print('Restored previous building: ${selectedBuilding.name}');
+            } else {
+              print('Previous building no longer available, selected: ${selectedBuilding.name}');
+            }
+          } else {
+            // No previous building, select first
+            selectedBuilding = fetchedBuildings.first;
+            print('New user, selected first building: ${selectedBuilding.name}');
+          }
+          
+          await _storage.storeSelectedBuilding(selectedBuilding);
+          _selectedBuildingController.add(selectedBuilding);
+          
+          // Fetch building capabilities after selecting a building (with caching)
+          _fetchBuildingCapabilitiesWithCache(selectedBuilding.id, selectedBuilding.name);
+        } else {
+          print('No buildings returned from API');
         }
+      } catch (e, stackTrace) {
+        // Buildings fetch failed, but login was successful
+        print('ERROR: Failed to fetch user buildings: $e');
+        print('Stack trace: $stackTrace');
+        buildings = null;
       }
 
       // Notify listeners
@@ -93,15 +164,30 @@ class AuthService {
         refreshToken: refreshToken,
       );
     } on DioException catch (e) {
+      print('ERROR: DioException during login');
+      print('Status Code: ${e.response?.statusCode}');
+      print('Response: ${e.response?.data}');
+      print('Message: ${e.message}');
+      
       if (e.response?.statusCode == 401) {
         throw AuthException('Invalid credentials');
       } else if (e.response?.statusCode == 422) {
         final errors = e.response?.data['errors'] as Map<String, dynamic>?;
         final message = errors?.values.first?.first ?? 'Validation error';
         throw AuthException(message);
+      } else if (e.response?.statusCode == 500) {
+        final responseData = e.response?.data as Map<String, dynamic>?;
+        final message = responseData?['message'] as String?;
+        
+        if (message?.contains('Rate limiter') == true) {
+          throw AuthException('Server configuration error: Rate limiter not configured. Please contact system administrator.');
+        }
+        throw AuthException('Server error (500): ${message ?? 'Internal server error'}');
       }
       throw AuthException('Login failed: ${e.message}');
-    } catch (e) {
+    } catch (e, stackTrace) {
+      print('ERROR: General exception during login: $e');
+      print('Stack trace: $stackTrace');
       throw AuthException('Login failed: $e');
     }
   }
@@ -200,6 +286,79 @@ class AuthService {
   Future<void> selectBuilding(Building building) async {
     await _storage.storeSelectedBuilding(building);
     _selectedBuildingController.add(building);
+    
+    // Fetch capabilities for the newly selected building (with caching)
+    _fetchBuildingCapabilitiesWithCache(building.id, building.name);
+  }
+  
+  /// Get current building capabilities with caching
+  Future<BuildingCapabilitiesResponse?> getBuildingCapabilities() async {
+    final building = await getSelectedBuilding();
+    if (building == null) return null;
+    
+    // Return cached data if available for this building
+    if (_cachedCapabilities != null && _cachedBuildingId == building.id) {
+      print('DEBUG: Returning cached capabilities for building ${building.id}');
+      return _cachedCapabilities;
+    }
+    
+    return await _fetchBuildingCapabilitiesWithCache(building.id, building.name);
+  }
+  
+  /// Fetch building capabilities with caching and deduplication
+  Future<BuildingCapabilitiesResponse?> _fetchBuildingCapabilitiesWithCache(int buildingId, String buildingName) async {
+    // Return cached data if available for this building
+    if (_cachedCapabilities != null && _cachedBuildingId == buildingId) {
+      print('DEBUG: Using cached capabilities for building: $buildingName');
+      _buildingCapabilitiesController.add(_cachedCapabilities);
+      return _cachedCapabilities;
+    }
+    
+    // Check if there's already an ongoing request for this building
+    if (_ongoingRequests.containsKey(buildingId)) {
+      print('DEBUG: Waiting for ongoing request for building: $buildingName');
+      try {
+        final capabilities = await _ongoingRequests[buildingId]!;
+        _buildingCapabilitiesController.add(capabilities);
+        return capabilities;
+      } catch (e) {
+        _ongoingRequests.remove(buildingId);
+        _buildingCapabilitiesController.add(null);
+        return null;
+      }
+    }
+    
+    // Start new request
+    print('DEBUG: Starting new capabilities request for building: $buildingName');
+    final requestFuture = ApiClient.instance.getBuildingCapabilities(buildingId);
+    _ongoingRequests[buildingId] = requestFuture;
+    
+    try {
+      final capabilities = await requestFuture;
+      
+      // Cache the result
+      _cachedCapabilities = capabilities;
+      _cachedBuildingId = buildingId;
+      
+      // Remove from ongoing requests
+      _ongoingRequests.remove(buildingId);
+      
+      print('DEBUG: Successfully fetched and cached ${capabilities.enabled.length} enabled capabilities');
+      _buildingCapabilitiesController.add(capabilities);
+      return capabilities;
+    } catch (e) {
+      print('ERROR: Failed to fetch building capabilities: $e');
+      _ongoingRequests.remove(buildingId);
+      _buildingCapabilitiesController.add(null);
+      return null;
+    }
+  }
+  
+  /// Clear capabilities cache (useful when switching buildings)
+  void _clearCapabilitiesCache() {
+    _cachedCapabilities = null;
+    _cachedBuildingId = null;
+    _ongoingRequests.clear();
   }
 
   /// Get current access token
@@ -221,7 +380,7 @@ class AuthService {
       if (token == null || building == null) return false;
 
       final response = await _dio.get(
-        '${building.getApiBaseUrl()}/auth/user',
+        '${building.getApiBaseUrl()}/auth/me',
         options: Options(
           headers: {'Authorization': 'Bearer $token'},
         ),
@@ -247,7 +406,7 @@ class AuthService {
       }
 
       final response = await _dio.put(
-        '${building.getApiBaseUrl()}/auth/user',
+        '${building.getApiBaseUrl()}/me',
         data: {
           'name': name,
           'email': email,

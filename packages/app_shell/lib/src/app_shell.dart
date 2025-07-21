@@ -4,12 +4,12 @@ import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import 'models/models.dart';
 import 'navigation/navigation.dart';
-import 'routing/routing.dart';
+import 'routing/dynamic_router.dart';
 import 'shells/shells.dart';
 import 'widgets/widgets.dart';
 
 /// Main app shell that provides the complete navigation and layout structure
-class AppShell extends ConsumerWidget {
+class AppShell extends ConsumerStatefulWidget {
   final User? user;
   final Building? currentBuilding;
   final List<Building> availableBuildings;
@@ -22,20 +22,32 @@ class AppShell extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Initialize navigation state
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _initializeNavigationState(ref);
-    });
+  ConsumerState<AppShell> createState() => _AppShellState();
+}
 
-    final router = ref.watch(appRouterProvider);
+class _AppShellState extends ConsumerState<AppShell> {
+  bool _hasInitialized = false;
+
+  @override
+  Widget build(BuildContext context) {
+    final router = ref.watch(dynamicRouterProvider);
 
     return MaterialApp.router(
       title: 'Building Manager',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
+      theme: NWAppTheme.light(),
+      darkTheme: NWAppTheme.dark(),
       routerConfig: router,
       builder: (context, child) {
+        // Initialize navigation state once only
+        if (!_hasInitialized) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (!_hasInitialized) {
+              _initializeNavigationState();
+              _hasInitialized = true;
+            }
+          });
+        }
+        
         return AccessibilityWrapper(
           child: child ?? const SizedBox.shrink(),
         );
@@ -43,40 +55,71 @@ class AppShell extends ConsumerWidget {
     );
   }
 
-  void _initializeNavigationState(WidgetRef ref) {
+  void _initializeNavigationState() {
     final navigationNotifier = ref.read(navigationProvider.notifier);
 
-    // Set user role based on user data or default to resident
+    // Set user role based on user data
     UserRole userRole = UserRole.resident;
-    if (user != null) {
-      // This would be determined from user data in a real implementation
-      // For now, we'll use resident as default
-      userRole = UserRole.resident;
+    if (widget.user != null) {
+      if (widget.user!.isAdmin) {
+        userRole = UserRole.admin;
+      } else if (widget.availableBuildings.length > 1) {
+        // If user has access to multiple buildings but is not admin, they're likely a building manager
+        userRole = UserRole.buildingManager;
+      } else {
+        // Default to resident for single building users
+        userRole = UserRole.resident;
+      }
     }
     navigationNotifier.setUserRole(userRole);
 
     // Set current building
-    if (currentBuilding != null) {
-      navigationNotifier.setCurrentBuilding(currentBuilding);
+    if (widget.currentBuilding != null) {
+      navigationNotifier.setCurrentBuilding(widget.currentBuilding);
     }
 
     // Set available buildings
-    if (availableBuildings.isNotEmpty) {
-      navigationNotifier.setBuildingList(availableBuildings);
+    print('DEBUG: AppShell initializing with ${widget.availableBuildings.length} buildings');
+    if (widget.availableBuildings.isNotEmpty) {
+      navigationNotifier.setBuildingList(widget.availableBuildings);
+      print('DEBUG: Set ${widget.availableBuildings.length} buildings in navigation provider');
     }
 
-    // Set capabilities based on current building
-    List<String> capabilities = [];
-    if (currentBuilding?.capabilities != null) {
-      capabilities = currentBuilding!.capabilities!
-          .where((cap) => cap.isEnabled)
-          .map((cap) => cap.key)
-          .toList();
+    // Listen to building capabilities from AuthService (only once)
+    final authService = AuthService.instance;
+    authService.buildingCapabilitiesStream.listen((buildingCapabilities) {
+      if (!mounted) return;
+      
+      if (buildingCapabilities != null) {
+        print('DEBUG: Received building capabilities with ${buildingCapabilities.enabled.length} enabled');
+        // Use the new method that sets both capability keys and full capability data
+        navigationNotifier.setBuildingCapabilities(buildingCapabilities);
+      } else {
+        // Fallback to default capabilities if API fails
+        print('DEBUG: No building capabilities, using default for role: $userRole');
+        navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
+      }
+    });
+    
+    // Try to load capabilities immediately if we have a building (only once)
+    if (widget.currentBuilding != null) {
+      authService.getBuildingCapabilities().then((buildingCapabilities) {
+        if (!mounted) return;
+        
+        if (buildingCapabilities != null) {
+          print('DEBUG: Immediately loaded ${buildingCapabilities.enabled.length} enabled capabilities');
+          navigationNotifier.setBuildingCapabilities(buildingCapabilities);
+        }
+      }).catchError((e) {
+        if (!mounted) return;
+        
+        print('DEBUG: Failed to immediately load capabilities: $e');
+        navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
+      });
     } else {
-      // Set default capabilities based on user role
-      capabilities = userRole.defaultCapabilities;
+      // No building selected, use default capabilities
+      navigationNotifier.setAvailableCapabilities(userRole.defaultCapabilities);
     }
-    navigationNotifier.setAvailableCapabilities(capabilities);
   }
 }
 
@@ -125,9 +168,11 @@ class AppShellFactory {
         currentBuildingProvider.overrideWith((ref) => currentBuilding),
         buildingListProvider.overrideWith((ref) => availableBuildings),
         availableCapabilitiesProvider.overrideWith((ref) => 
+            // TODO: Update to use BuildingCapabilitiesResponse with enabled/available arrays
+            // Temporarily removing isEnabled check since Capability model no longer has this field
             currentBuilding?.capabilities
-                ?.where((cap) => cap.isEnabled)
-                .map((cap) => cap.key)
+                // ?.where((cap) => cap.isEnabled) // Temporarily commented out
+                ?.map((cap) => cap.key)
                 .toList() ?? UserRole.admin.defaultCapabilities),
       ],
       child: AppShell(
@@ -143,9 +188,11 @@ class AppShellFactory {
     Building? currentBuilding,
     List<Building> availableBuildings = const [],
   }) {
+    // TODO: Update to use BuildingCapabilitiesResponse with enabled/available arrays
+    // Temporarily removing isEnabled check since Capability model no longer has this field
     final capabilities = currentBuilding?.capabilities
-            ?.where((cap) => cap.isEnabled)
-            .map((cap) => cap.key)
+            // ?.where((cap) => cap.isEnabled) // Temporarily commented out
+            ?.map((cap) => cap.key)
             .toList() ??
         UserRole.buildingManager.defaultCapabilities;
 
@@ -168,9 +215,11 @@ class AppShellFactory {
     required User user,
     required Building building,
   }) {
+    // TODO: Update to use BuildingCapabilitiesResponse with enabled/available arrays
+    // Temporarily removing isEnabled check since Capability model no longer has this field
     final capabilities = building.capabilities
-            ?.where((cap) => cap.isEnabled)
-            .map((cap) => cap.key)
+            // ?.where((cap) => cap.isEnabled) // Temporarily commented out
+            ?.map((cap) => cap.key)
             .toList() ??
         UserRole.resident.defaultCapabilities;
 
@@ -282,8 +331,10 @@ class AppShellUtils {
   static List<String> getBuildingCapabilities(Building? building) {
     if (building?.capabilities == null) return [];
     
+    // TODO: Update to use BuildingCapabilitiesResponse with enabled/available arrays
+    // Temporarily removing isEnabled check since Capability model no longer has this field
     return building!.capabilities!
-        .where((cap) => cap.isEnabled)
+        // .where((cap) => cap.isEnabled) // Temporarily commented out
         .map((cap) => cap.key)
         .toList();
   }
@@ -297,7 +348,15 @@ class AppShellUtils {
 
   /// Get appropriate default route for user role
   static String getDefaultRoute(UserRole role) {
-    return RouteUtils.getDefaultRouteForRole(role);
+    switch (role) {
+      case UserRole.admin:
+      case UserRole.buildingManager:
+      case UserRole.resident:
+      case UserRole.staff:
+        return '/dashboard';
+      case UserRole.defectUser:
+        return '/defects';
+    }
   }
 
   /// Check if feature is enabled for building

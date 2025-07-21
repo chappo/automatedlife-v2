@@ -112,5 +112,5 @@ class ContrastChecker {
     }());
   }
   
-  private ContrastChecker._();
+  ContrastChecker._();
 }

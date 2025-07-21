@@ -85,7 +85,7 @@ class _SplashScreenState extends State<SplashScreen>
                             borderRadius: BorderRadius.circular(NWDimensions.radiusLarge),
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withOpacity(0.3),
+                                color: colorScheme.primary.withValues(alpha: 0.3),
                                 blurRadius: 20,
                                 offset: const Offset(0, 8),
                               ),
@@ -150,7 +150,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Text(
                         'Streamlined Building Management',
                         style: theme.textTheme.bodyMedium?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.7),
+                          color: colorScheme.onSurface.withValues(alpha: 0.7),
                         ),
                         textAlign: TextAlign.center,
                       ),
@@ -158,7 +158,7 @@ class _SplashScreenState extends State<SplashScreen>
                   },
                 ),
                 
-                const SizedBox(height: NWSpacing.extraLarge),
+                const SizedBox(height: NWSpacing.xLarge),
                 
                 // Loading indicator
                 AnimatedBuilder(
@@ -191,7 +191,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Text(
                         'Initializing...',
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: colorScheme.onSurface.withOpacity(0.6),
+                          color: colorScheme.onSurface.withValues(alpha: 0.6),
                         ),
                         semanticsLabel: 'App is initializing',
                       ),

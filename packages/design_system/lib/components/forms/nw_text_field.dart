@@ -248,7 +248,7 @@ class _NWTextFieldState extends State<NWTextField> {
         filled: true,
         fillColor: _hasFocus 
           ? colorScheme.surface
-          : colorScheme.surfaceContainerHighest.withOpacity(0.3),
+          : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: NWSpacing.medium,
           vertical: NWSpacing.medium,
@@ -264,6 +264,7 @@ class _NWTextFieldState extends State<NWTextField> {
       enabled: widget.enabled,
       focusable: true,
       child: AccessibleTouchTargets.ensureMinimumTouchTarget(
+        onTap: null,
         child: textField,
       ),
     );

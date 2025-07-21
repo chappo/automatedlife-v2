@@ -64,5 +64,5 @@ class AccessibleTouchTargets {
            size.height >= NWDimensions.minTouchTarget;
   }
   
-  private AccessibleTouchTargets._();
+  AccessibleTouchTargets._();
 }

@@ -241,14 +241,28 @@ class ApiClient {
 
   /// Get user profile
   Future<User> getUserProfile() async {
-    final response = await get('/auth/user');
+    final response = await get('/me');
     return User.fromJson(response.data['user']);
   }
 
   /// Get user buildings
   Future<List<Building>> getUserBuildings() async {
     final response = await get('/buildings');
-    final buildingsData = response.data['buildings'] as List;
+    final responseData = response.data as Map<String, dynamic>;
+    
+    print('DEBUG: Full buildings response: $responseData');
+    print('DEBUG: Response keys: ${responseData.keys.toList()}');
+    
+    // The API returns buildings in 'data' field
+    final buildingsData = responseData['data'] as List?;
+    
+    print('DEBUG: Buildings data type: ${buildingsData.runtimeType}');
+    print('DEBUG: Buildings data length: ${buildingsData?.length}');
+    
+    if (buildingsData == null) {
+      throw ApiException('No buildings data in response');
+    }
+    
     return buildingsData
         .map((buildingData) => Building.fromJson(buildingData))
         .toList();
@@ -260,13 +274,15 @@ class ApiClient {
     return Building.fromJson(response.data['building']);
   }
 
-  /// Get building capabilities
-  Future<List<Capability>> getBuildingCapabilities(int buildingId) async {
+  /// Get building-specific capabilities (enabled and available)
+  /// This endpoint provides everything needed to render capability tiles:
+  /// - Full capability definitions (name, description, type, category, icon, apps)
+  /// - Building-specific data (sortOrder, linkId, dynamic data like counts)
+  /// - Enabled vs available status for this building
+  Future<BuildingCapabilitiesResponse> getBuildingCapabilities(int buildingId) async {
     final response = await get('/buildings/$buildingId/capabilities');
-    final capabilitiesData = response.data['capabilities'] as List;
-    return capabilitiesData
-        .map((capabilityData) => Capability.fromJson(capabilityData))
-        .toList();
+    final responseData = response.data as Map<String, dynamic>;
+    return BuildingCapabilitiesResponse.fromJson(responseData['data']);
   }
 
   /// Update building branding
@@ -309,7 +325,7 @@ class ApiClient {
     required String email,
   }) async {
     final response = await put(
-      '/auth/user',
+      '/me',
       data: {
         'name': name,
         'email': email,

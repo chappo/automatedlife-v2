@@ -30,5 +30,5 @@ class NWDimensions {
   static const double cardMinHeight = 120.0;
   static const double capabilityCardSize = 140.0;
   
-  private NWDimensions._();
+  NWDimensions._();
 }

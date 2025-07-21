@@ -6,26 +6,25 @@ part 'capability.g.dart';
 class Capability {
   final int id;
   final String name;
+  @JsonKey(name: 'reference')
   final String key;
   final String? description;
-  @JsonKey(name: 'is_enabled')
-  final bool isEnabled;
-  @JsonKey(name: 'config_data')
-  final Map<String, dynamic>? configData;
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
-  @JsonKey(name: 'updated_at')
-  final DateTime updatedAt;
+  final String type;
+  final String? category;
+  final Map<String, dynamic>? icon;
+  final Map<String, dynamic>? apps;
+  final Map<String, dynamic>? settings;
 
   const Capability({
     required this.id,
     required this.name,
     required this.key,
     this.description,
-    required this.isEnabled,
-    this.configData,
-    required this.createdAt,
-    required this.updatedAt,
+    required this.type,
+    this.category,
+    this.icon,
+    this.apps,
+    this.settings,
   });
 
   factory Capability.fromJson(Map<String, dynamic> json) =>
@@ -37,20 +36,22 @@ class Capability {
     String? name,
     String? key,
     String? description,
-    bool? isEnabled,
-    Map<String, dynamic>? configData,
-    DateTime? createdAt,
-    DateTime? updatedAt,
+    String? type,
+    String? category,
+    Map<String, dynamic>? icon,
+    Map<String, dynamic>? apps,
+    Map<String, dynamic>? settings,
   }) {
     return Capability(
       id: id ?? this.id,
       name: name ?? this.name,
       key: key ?? this.key,
       description: description ?? this.description,
-      isEnabled: isEnabled ?? this.isEnabled,
-      configData: configData ?? this.configData,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
+      type: type ?? this.type,
+      category: category ?? this.category,
+      icon: icon ?? this.icon,
+      apps: apps ?? this.apps,
+      settings: settings ?? this.settings,
     );
   }
 
@@ -62,9 +63,8 @@ class Capability {
         other.name == name &&
         other.key == key &&
         other.description == description &&
-        other.isEnabled == isEnabled &&
-        other.createdAt == createdAt &&
-        other.updatedAt == updatedAt;
+        other.type == type &&
+        other.category == category;
   }
 
   @override
@@ -73,13 +73,12 @@ class Capability {
         name.hashCode ^
         key.hashCode ^
         description.hashCode ^
-        isEnabled.hashCode ^
-        createdAt.hashCode ^
-        updatedAt.hashCode;
+        type.hashCode ^
+        category.hashCode;
   }
 
   @override
   String toString() {
-    return 'Capability(id: $id, name: $name, key: $key, description: $description, isEnabled: $isEnabled, configData: $configData, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Capability(id: $id, name: $name, key: $key, description: $description, type: $type, category: $category, icon: $icon, apps: $apps, settings: $settings)';
   }
 }

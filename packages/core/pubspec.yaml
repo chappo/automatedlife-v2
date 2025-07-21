@@ -10,7 +10,7 @@ dependencies:
   flutter:
     sdk: flutter
   dio: ^5.3.0
-  dio_smart_retry: ^6.0.0
+  dio_smart_retry: ^7.0.1
   flutter_secure_storage: ^9.0.0
   hive_flutter: ^1.1.0
   json_annotation: ^4.9.0
@@ -18,7 +18,7 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_lints: ^3.0.0
+  flutter_lints: ^6.0.0
   json_serializable: ^6.6.0
   build_runner: ^2.4.0
 

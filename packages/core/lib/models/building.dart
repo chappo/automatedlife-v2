@@ -21,12 +21,6 @@ class Building {
   final bool isActive;
   final BuildingBranding? branding;
   final List<Capability>? capabilities;
-  @JsonKey(name: 'api_subdomain')
-  final String? apiSubdomain;
-  @JsonKey(name: 'created_at')
-  final DateTime createdAt;
-  @JsonKey(name: 'updated_at')
-  final DateTime updatedAt;
 
   const Building({
     required this.id,
@@ -41,9 +35,6 @@ class Building {
     required this.isActive,
     this.branding,
     this.capabilities,
-    this.apiSubdomain,
-    required this.createdAt,
-    required this.updatedAt,
   });
 
   factory Building.fromJson(Map<String, dynamic> json) =>
@@ -63,9 +54,6 @@ class Building {
     bool? isActive,
     BuildingBranding? branding,
     List<Capability>? capabilities,
-    String? apiSubdomain,
-    DateTime? createdAt,
-    DateTime? updatedAt,
   }) {
     return Building(
       id: id ?? this.id,
@@ -80,36 +68,39 @@ class Building {
       isActive: isActive ?? this.isActive,
       branding: branding ?? this.branding,
       capabilities: capabilities ?? this.capabilities,
-      apiSubdomain: apiSubdomain ?? this.apiSubdomain,
-      createdAt: createdAt ?? this.createdAt,
-      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 
   /// Get the API base URL for this building
   String getApiBaseUrl() {
-    if (apiSubdomain != null && apiSubdomain!.isNotEmpty) {
-      return 'https://$apiSubdomain.automatedlife.io/api/v1';
-    }
-    return 'https://api.automatedlife.io/api/v1';
+    // For development, use local server
+    return 'http://10.10.0.203:8000/api/v1';
+    
+    // Production logic (commented out for development):
+    // if (apiSubdomain != null && apiSubdomain!.isNotEmpty) {
+    //   return 'https://$apiSubdomain.automatedlife.io/api/v1';
+    // }
+    // return 'https://api.automatedlife.io/api/v1';
   }
 
   /// Check if a specific capability is enabled
+  /// Note: This method is deprecated. Use BuildingCapabilitiesResponse instead.
   bool hasCapability(String capabilityKey) {
     if (capabilities == null) return false;
     return capabilities!.any(
-      (capability) => capability.key == capabilityKey && capability.isEnabled,
+      (capability) => capability.key == capabilityKey,
     );
   }
 
   /// Get capability configuration data
+  /// Note: This method is deprecated. Use BuildingCapabilitiesResponse instead.
   Map<String, dynamic>? getCapabilityConfig(String capabilityKey) {
     if (capabilities == null) return null;
     final capability = capabilities!.firstWhere(
-      (cap) => cap.key == capabilityKey && cap.isEnabled,
-      orElse: () => throw StateError('Capability $capabilityKey not found or not enabled'),
+      (cap) => cap.key == capabilityKey,
+      orElse: () => throw StateError('Capability $capabilityKey not found'),
     );
-    return capability.configData;
+    return capability.settings;
   }
 
   @override
@@ -126,10 +117,7 @@ class Building {
         other.country == country &&
         other.timeZone == timeZone &&
         other.isActive == isActive &&
-        other.branding == branding &&
-        other.apiSubdomain == apiSubdomain &&
-        other.createdAt == createdAt &&
-        other.updatedAt == updatedAt;
+        other.branding == branding;
   }
 
   @override
@@ -144,14 +132,11 @@ class Building {
         country.hashCode ^
         timeZone.hashCode ^
         isActive.hashCode ^
-        branding.hashCode ^
-        apiSubdomain.hashCode ^
-        createdAt.hashCode ^
-        updatedAt.hashCode;
+        branding.hashCode;
   }
 
   @override
   String toString() {
-    return 'Building(id: $id, name: $name, description: $description, address: $address, city: $city, state: $state, zipCode: $zipCode, country: $country, timeZone: $timeZone, isActive: $isActive, branding: $branding, apiSubdomain: $apiSubdomain, createdAt: $createdAt, updatedAt: $updatedAt)';
+    return 'Building(id: $id, name: $name, description: $description, address: $address, city: $city, state: $state, zipCode: $zipCode, country: $country, timeZone: $timeZone, isActive: $isActive, branding: $branding)';
   }
 }

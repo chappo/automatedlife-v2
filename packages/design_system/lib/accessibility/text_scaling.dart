@@ -14,7 +14,7 @@ class AccessibleTextScaling {
   /// accessibility needs up to 200% scaling.
   static double getClampedTextScaleFactor(BuildContext context) {
     final mediaQuery = MediaQuery.of(context);
-    return mediaQuery.textScaleFactor.clamp(minScaleFactor, maxScaleFactor);
+    return mediaQuery.textScaler.scale(1.0).clamp(minScaleFactor, maxScaleFactor);
   }
   
   /// Scales a TextStyle based on accessibility settings
@@ -31,7 +31,7 @@ class AccessibleTextScaling {
   
   /// Checks if large text accessibility setting is enabled
   static bool isLargeTextEnabled(BuildContext context) {
-    return MediaQuery.of(context).textScaleFactor > 1.3;
+    return MediaQuery.of(context).textScaler.scale(1.0) > 1.3;
   }
   
   /// Gets appropriate line height for scaled text
@@ -40,5 +40,5 @@ class AccessibleTextScaling {
     return baseHeight / scaleFactor;
   }
   
-  private AccessibleTextScaling._();
+  AccessibleTextScaling._();
 }
