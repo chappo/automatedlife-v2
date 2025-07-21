@@ -5,6 +5,7 @@ import 'package:core/core.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../navigation/navigation_provider.dart';
 import '../widgets/building_switcher.dart';
+import '../screens/settings_screen.dart';
 import '../utils/icon_mapper.dart';
 
 /// Provider for dynamic router that adapts to building capabilities
@@ -61,7 +62,7 @@ List<RouteBase> _buildDynamicRoutes(ProviderRef ref) {
         GoRoute(
           path: '/settings',
           name: 'settings',
-          builder: (context, state) => const SettingsPage(),
+          builder: (context, state) => const SettingsScreen(),
         ),
       ],
     ),
@@ -728,28 +729,4 @@ class DashboardPage extends StatelessWidget {
   }
 }
 
-/// Simple settings page
-class SettingsPage extends StatelessWidget {
-  const SettingsPage({super.key});
-  
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(Icons.settings, size: 64),
-            SizedBox(height: 16),
-            Text(
-              'Settings',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 8),
-            Text('App settings and preferences'),
-          ],
-        ),
-      ),
-    );
-  }
-}
+// Settings page now imported from main app

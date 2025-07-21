@@ -321,17 +321,73 @@ class ApiClient {
 
   /// Update user profile
   Future<User> updateUserProfile({
-    required String name,
-    required String email,
+    String? name,
+    String? email,
+    String? preferredName,
   }) async {
-    final response = await put(
-      '/me',
-      data: {
-        'name': name,
-        'email': email,
-      },
-    );
+    final data = <String, dynamic>{};
+    if (name != null) data['name'] = name;
+    if (email != null) data['email'] = email;
+    if (preferredName != null) data['preferred_name'] = preferredName;
+    
+    final response = await put('/me', data: data);
     return User.fromJson(response.data['user']);
+  }
+
+  /// Update user preferred name (alias) - Legacy method
+  Future<User> updateUserAlias({required String preferredName}) async {
+    return updateUserProfile(preferredName: preferredName);
+  }
+
+  // === USER ALIAS MANAGEMENT ===
+
+  /// Get user's aliases
+  Future<List<UserAlias>> getUserAliases() async {
+    final response = await get('/me/aliases');
+    return (response.data['aliases'] as List)
+        .map((alias) => UserAlias.fromJson(alias))
+        .toList();
+  }
+
+  /// Create new alias
+  Future<UserAlias> createUserAlias({
+    required String alias,
+    required String type,
+    bool isPublic = true,
+  }) async {
+    final response = await post('/me/aliases', data: {
+      'alias': alias,
+      'type': type,
+      'isPublic': isPublic,
+    });
+    return UserAlias.fromJson(response.data['alias']);
+  }
+
+  /// Update existing alias
+  Future<UserAlias> updateUserAliasById({
+    required String aliasId,
+    String? alias,
+    String? type,
+    bool? isPublic,
+  }) async {
+    final data = <String, dynamic>{};
+    if (alias != null) data['alias'] = alias;
+    if (type != null) data['type'] = type;
+    if (isPublic != null) data['isPublic'] = isPublic;
+
+    final response = await put('/me/aliases/$aliasId', data: data);
+    return UserAlias.fromJson(response.data['alias']);
+  }
+
+  /// Delete alias
+  Future<void> deleteUserAlias(String aliasId) async {
+    await delete('/me/aliases/$aliasId');
+  }
+
+  /// Set primary alias
+  Future<UserAlias> setPrimaryAlias(String aliasId) async {
+    final response = await post('/me/aliases/$aliasId/set-primary');
+    return UserAlias.fromJson(response.data['alias']);
   }
 
   /// Change user password

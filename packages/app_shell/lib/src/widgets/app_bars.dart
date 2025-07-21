@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:core/core.dart';
 import 'package:design_system/design_system.dart';
 import '../navigation/navigation_provider.dart';
@@ -166,7 +167,7 @@ class CompactAppBar extends ConsumerWidget implements PreferredSizeWidget {
 }
 
 /// Profile bottom sheet for user actions
-class ProfileBottomSheet extends StatelessWidget {
+class ProfileBottomSheet extends ConsumerStatefulWidget {
   final UserRole userRole;
   final Building? currentBuilding;
 
@@ -177,8 +178,83 @@ class ProfileBottomSheet extends StatelessWidget {
   });
 
   @override
+  ConsumerState<ProfileBottomSheet> createState() => _ProfileBottomSheetState();
+}
+
+class _ProfileBottomSheetState extends ConsumerState<ProfileBottomSheet> {
+  bool _isLoggingOut = false;
+
+  Future<void> _handleSignOut() async {
+    final confirmed = await _showLogoutConfirmation();
+    if (confirmed == true) {
+      setState(() {
+        _isLoggingOut = true;
+      });
+
+      try {
+        await AuthService.instance.logout();
+        // Navigation will be handled by AuthWrapper listening to auth state
+        if (mounted) {
+          Navigator.pop(context);
+        }
+      } catch (e) {
+        if (mounted) {
+          setState(() {
+            _isLoggingOut = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('Error signing out: $e'),
+              backgroundColor: Theme.of(context).colorScheme.error,
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  Future<bool?> _showLogoutConfirmation() {
+    return showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Sign Out'),
+        content: const Text('Are you sure you want to sign out?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).colorScheme.error,
+            ),
+            child: const Text('Sign Out'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToSettings() {
+    Navigator.pop(context);
+    // Navigate to settings using go_router
+    context.go('/settings');
+  }
+
+  void _navigateToHelp() {
+    Navigator.pop(context);
+    // TODO: Implement help & support navigation
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Help & support coming soon')),
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final navigationState = ref.watch(navigationProvider);
+    final user = navigationState.currentUser;
     
     return Container(
       padding: const EdgeInsets.all(16),
@@ -188,11 +264,30 @@ class ProfileBottomSheet extends StatelessWidget {
         children: [
           Row(
             children: [
-              CircleAvatar(
-                backgroundColor: theme.colorScheme.primary,
-                child: Icon(
-                  Icons.person,
-                  color: theme.colorScheme.onPrimary,
+              Container(
+                width: 50,
+                height: 50,
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [
+                      Color(0xFF77B42D), // AL brand green
+                      Color(0xFF558B2F), // Darker AL green
+                    ],
+                  ),
+                  borderRadius: BorderRadius.circular(25),
+                ),
+                child: Center(
+                  child: Text(
+                    user?.displayName?.isNotEmpty == true 
+                        ? user!.displayName.split(' ').map((e) => e[0]).take(2).join().toUpperCase()
+                        : widget.userRole.displayName[0].toUpperCase(),
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
               const SizedBox(width: 16),
@@ -201,20 +296,23 @@ class ProfileBottomSheet extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'User Profile',
-                      style: theme.textTheme.titleMedium,
+                      user?.displayName ?? 'User Profile',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
                     Text(
-                      userRole.displayName,
+                      widget.userRole.displayName,
                       style: theme.textTheme.bodyMedium?.copyWith(
                         color: theme.colorScheme.onSurfaceVariant,
                       ),
                     ),
-                    if (currentBuilding != null)
+                    if (widget.currentBuilding?.name != null)
                       Text(
-                        currentBuilding!.name,
+                        widget.currentBuilding!.name!,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.onSurfaceVariant,
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w500,
                         ),
                       ),
                   ],
@@ -223,29 +321,33 @@ class ProfileBottomSheet extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 24),
+          const Divider(),
           ListTile(
-            leading: const Icon(Icons.settings),
+            leading: Icon(Icons.settings_outlined, color: theme.colorScheme.primary),
             title: const Text('Settings'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to settings
-            },
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _navigateToSettings,
           ),
           ListTile(
-            leading: const Icon(Icons.help),
+            leading: Icon(Icons.help_outline, color: theme.colorScheme.primary),
             title: const Text('Help & Support'),
-            onTap: () {
-              Navigator.pop(context);
-              // Navigate to help
-            },
+            trailing: const Icon(Icons.chevron_right),
+            onTap: _navigateToHelp,
           ),
+          const Divider(),
           ListTile(
-            leading: const Icon(Icons.logout),
-            title: const Text('Sign Out'),
-            onTap: () {
-              Navigator.pop(context);
-              // Handle sign out
-            },
+            leading: Icon(
+              _isLoggingOut ? Icons.hourglass_empty : Icons.logout,
+              color: theme.colorScheme.error,
+            ),
+            title: Text(
+              _isLoggingOut ? 'Signing Out...' : 'Sign Out',
+              style: TextStyle(
+                color: theme.colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            onTap: _isLoggingOut ? null : _handleSignOut,
           ),
           const SizedBox(height: 16),
         ],
