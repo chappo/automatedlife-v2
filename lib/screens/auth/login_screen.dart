@@ -118,28 +118,39 @@ class _LoginScreenState extends State<LoginScreen> {
     final colorScheme = theme.colorScheme;
 
     return Scaffold(
-      backgroundColor: colorScheme.surface,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(NWSpacing.large),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: NWSpacing.xLarge),
-              
-              // App logo and title
-              _buildHeader(theme),
-              
-              const SizedBox(height: NWSpacing.xLarge),
-              
-              // Login form
-              _buildLoginForm(theme),
-              
-              const SizedBox(height: NWSpacing.large),
-              
-              // Additional options
-              _buildAdditionalOptions(theme),
+      body: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              colorScheme.surface,
+              colorScheme.surfaceContainerLowest,
             ],
+          ),
+        ),
+        child: SafeArea(
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(NWSpacing.large),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                const SizedBox(height: NWSpacing.xLarge),
+                
+                // App logo and title
+                _buildHeader(theme),
+                
+                const SizedBox(height: NWSpacing.xLarge),
+                
+                // Login form card
+                _buildLoginFormCard(theme),
+                
+                const SizedBox(height: NWSpacing.large),
+                
+                // Additional options
+                _buildAdditionalOptions(theme),
+              ],
+            ),
           ),
         ),
       ),
@@ -149,31 +160,51 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget _buildHeader(ThemeData theme) {
     return Column(
       children: [
-        // App logo
+        // App logo with enhanced design
         Container(
-          width: 80,
-          height: 80,
+          width: 100,
+          height: 100,
           decoration: BoxDecoration(
-            color: theme.colorScheme.primary,
-            borderRadius: BorderRadius.circular(NWDimensions.radiusMedium),
+            gradient: const LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF77B42D), // AL brand green
+                Color(0xFF558B2F), // Darker AL green
+              ],
+            ),
+            borderRadius: BorderRadius.circular(NWDimensions.radiusLarge),
+            boxShadow: [
+              BoxShadow(
+                color: theme.colorScheme.primary.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
+                spreadRadius: 2,
+              ),
+              BoxShadow(
+                color: Colors.white.withValues(alpha: 0.1),
+                blurRadius: 15,
+                offset: const Offset(-3, -3),
+              ),
+            ],
           ),
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Icon(
-                Icons.home_work_outlined,
-                size: 28,
-                color: theme.colorScheme.onPrimary,
+                Icons.apartment_outlined,
+                size: 36,
+                color: Colors.white,
                 semanticLabel: 'Automated Life Building Manager logo',
               ),
-              const SizedBox(height: 2),
+              const SizedBox(height: 4),
               Text(
                 'AL',
                 style: TextStyle(
-                  color: theme.colorScheme.onPrimary,
-                  fontSize: 12,
+                  color: Colors.white,
+                  fontSize: 14,
                   fontWeight: FontWeight.bold,
-                  letterSpacing: 1.0,
+                  letterSpacing: 1.2,
                 ),
               ),
             ],
@@ -203,6 +234,33 @@ class _LoginScreenState extends State<LoginScreen> {
           textAlign: TextAlign.center,
         ),
       ],
+    );
+  }
+
+  Widget _buildLoginFormCard(ThemeData theme) {
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(NWDimensions.radiusLarge),
+        boxShadow: [
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+            spreadRadius: 0,
+          ),
+          BoxShadow(
+            color: theme.colorScheme.shadow.withValues(alpha: 0.05),
+            blurRadius: 40,
+            offset: const Offset(0, 20),
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Padding(
+        padding: const EdgeInsets.all(NWSpacing.xLarge),
+        child: _buildLoginForm(theme),
+      ),
     );
   }
 

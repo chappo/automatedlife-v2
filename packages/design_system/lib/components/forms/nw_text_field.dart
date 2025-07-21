@@ -248,7 +248,7 @@ class _NWTextFieldState extends State<NWTextField> {
         filled: true,
         fillColor: _hasFocus 
           ? colorScheme.surface
-          : colorScheme.surfaceContainerHighest.withValues(alpha: 0.3),
+          : colorScheme.surfaceContainerHighest.withValues(alpha: 0.5),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: NWSpacing.medium,
           vertical: NWSpacing.medium,

@@ -6,16 +6,29 @@ import '../accessibility/contrast_checker.dart';
 /// Provides accessible color schemes with WCAG AA compliance.
 /// Supports building-specific branding and high contrast mode.
 class NWColors {
-  // Base brand colors
-  static const Color primaryBlue = Color(0xFF1976D2);
-  static const Color primaryBlueLight = Color(0xFF42A5F5);
-  static const Color primaryBlueDark = Color(0xFF0D47A1);
+  // Automated Life brand colors - official green branding
+  static const Color primaryGreen = Color(0xFF77B42D);     // AL brand green
+  static const Color primaryGreenLight = Color(0xFF8BC34A); // Lighter brand green
+  static const Color primaryGreenDark = Color(0xFF558B2F);  // Deeper brand green
   
-  // Semantic colors
-  static const Color success = Color(0xFF4CAF50);
-  static const Color warning = Color(0xFFFF9800);
-  static const Color error = Color(0xFFF44336);
-  static const Color info = Color(0xFF2196F3);
+  // Brand-aligned gradient colors
+  static const Color gradientStart = Color(0xFF77B42D);    // AL green gradient start
+  static const Color gradientEnd = Color(0xFF558B2F);      // Darker AL green gradient end
+  
+  // Professional accent colors complementing green
+  static const Color accent = Color(0xFF2196F3);           // Professional blue accent
+  static const Color accentLight = Color(0xFF64B5F6);      // Light blue
+  static const Color accentDark = Color(0xFF1976D2);       // Dark blue
+  
+  // Enhanced semantic colors - more vibrant and modern
+  static const Color success = Color(0xFF10B981);         // Modern green
+  static const Color successLight = Color(0xFF34D399);    // Light green
+  static const Color warning = Color(0xFFF59E0B);         // Modern amber
+  static const Color warningLight = Color(0xFFFBBF24);    // Light amber
+  static const Color error = Color(0xFFEF4444);           // Modern red
+  static const Color errorLight = Color(0xFFF87171);      // Light red
+  static const Color info = Color(0xFF3B82F6);            // Modern blue
+  static const Color infoLight = Color(0xFF60A5FA);       // Light blue
   
   // Neutral colors
   static const Color neutral50 = Color(0xFFFAFAFA);
@@ -74,12 +87,12 @@ class NWColors {
   }
   
   static final ColorScheme _defaultLightScheme = ColorScheme.fromSeed(
-    seedColor: primaryBlue,
+    seedColor: primaryGreen,
     brightness: Brightness.light,
   );
   
   static final ColorScheme _defaultDarkScheme = ColorScheme.fromSeed(
-    seedColor: primaryBlue,
+    seedColor: primaryGreen,
     brightness: Brightness.dark,
   );
   
@@ -133,14 +146,44 @@ class NWColors {
     }());
   }
   
-  /// Gets capability-specific colors with fallbacks
+  /// Gets capability-specific colors with modern, vibrant palette
   static Map<String, Color> get capabilityColors => {
-    'messaging': const Color(0xFF2196F3),
-    'defects': const Color(0xFFF44336),
-    'calendar': const Color(0xFF4CAF50),
-    'documents': const Color(0xFF9C27B0),
-    'intercom': const Color(0xFFFF9800),
+    'messaging': const Color(0xFF3B82F6),    // Modern blue
+    'defects': const Color(0xFFEF4444),      // Modern red
+    'calendar': const Color(0xFF10B981),     // Modern green
+    'documents': const Color(0xFF8B5CF6),    // Modern purple
+    'intercom': const Color(0xFFF59E0B),     // Modern amber
+    'dashboard': const Color(0xFF6366F1),    // Indigo
+    'residents': const Color(0xFF06B6D4),    // Cyan
+    'maintenance': const Color(0xFFEAB308),  // Yellow
+    'security': const Color(0xFFDC2626),     // Strong red
+    'amenities': const Color(0xFF059669),    // Emerald
   };
+  
+  /// Gradient definitions for visual enhancements
+  static const LinearGradient primaryGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [gradientStart, gradientEnd],
+  );
+  
+  static const LinearGradient successGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFF10B981), Color(0xFF059669)],
+  );
+  
+  static const LinearGradient warningGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFF59E0B), Color(0xFFEAB308)],
+  );
+  
+  static const LinearGradient errorGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [Color(0xFFEF4444), Color(0xFFDC2626)],
+  );
   
   NWColors._();
 }

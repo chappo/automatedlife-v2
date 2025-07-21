@@ -81,13 +81,27 @@ class _SplashScreenState extends State<SplashScreen>
                           width: 120,
                           height: 120,
                           decoration: BoxDecoration(
-                            color: colorScheme.primary,
+                            gradient: const LinearGradient(
+                              begin: Alignment.topLeft,
+                              end: Alignment.bottomRight,
+                              colors: [
+                                Color(0xFF77B42D), // AL brand green
+                                Color(0xFF558B2F), // Darker AL green
+                              ],
+                            ),
                             borderRadius: BorderRadius.circular(NWDimensions.radiusLarge),
                             boxShadow: [
                               BoxShadow(
-                                color: colorScheme.primary.withValues(alpha: 0.3),
+                                color: colorScheme.primary.withValues(alpha: 0.4),
+                                blurRadius: 30,
+                                offset: const Offset(0, 15),
+                                spreadRadius: 2,
+                              ),
+                              BoxShadow(
+                                color: Colors.white.withValues(alpha: 0.1),
                                 blurRadius: 20,
-                                offset: const Offset(0, 8),
+                                offset: const Offset(-5, -5),
+                                spreadRadius: 1,
                               ),
                             ],
                           ),
@@ -95,16 +109,16 @@ class _SplashScreenState extends State<SplashScreen>
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                Icons.home_work_outlined,
+                                Icons.apartment_outlined,
                                 size: 45,
-                                color: colorScheme.onPrimary,
+                                color: Colors.white,
                                 semanticLabel: 'Automated Life Building Manager logo',
                               ),
                               const SizedBox(height: 4),
                               Text(
                                 'AL',
                                 style: TextStyle(
-                                  color: colorScheme.onPrimary,
+                                  color: Colors.white,
                                   fontSize: 16,
                                   fontWeight: FontWeight.bold,
                                   letterSpacing: 1.2,
